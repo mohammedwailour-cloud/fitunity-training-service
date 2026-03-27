@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Training.Application.DTOs
+namespace Training.Application.Common.DTOs
 {
     public class PagedResult<T>
     {

@@ -1,8 +1,6 @@
-﻿
+﻿using Training.Domain.Enums;
 
-using Training.Domain.Enums;
-
-namespace Training.Application.DTOs
+namespace Training.Application.Reservations.DTOs
 {
     public class ReservationResponse
     {

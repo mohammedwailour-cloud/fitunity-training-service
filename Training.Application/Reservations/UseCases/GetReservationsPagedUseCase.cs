@@ -1,5 +1,5 @@
-﻿using Training.Application.DTOs;
-using Training.Application.Interfaces;
+﻿using Training.Application.Common.DTOs;
+using Training.Application.Reservations.Interfaces;
 using Training.Domain.Entities;
 
 public class GetReservationsPagedUseCase

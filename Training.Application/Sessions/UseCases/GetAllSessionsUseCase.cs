@@ -1,6 +1,6 @@
-﻿using Training.Application.DTOs;
-using Training.Application.Interfaces;
-using Training.Application.Mappers;
+﻿using Training.Application.Sessions.DTOs;
+using Training.Application.Sessions.Interfaces;
+using Training.Application.Sessions.Mappers;
 using Training.Domain.Entities;
 
 public class GetAllSessionsUseCase

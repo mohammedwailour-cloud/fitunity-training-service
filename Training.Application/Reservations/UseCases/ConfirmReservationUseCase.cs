@@ -1,12 +1,14 @@
-﻿using Training.Application.Interfaces;
+﻿using Training.Application.Common.Interfaces;
+using Training.Application.Reservations.Interfaces;
 using Training.Domain.Events;
+using Training.Domain.Exceptions;
 
-public class CancelReservationUseCase
+public class ConfirmReservationUseCase
 {
     private readonly IReservationRepository _reservationRepository;
     private readonly IEventPublisher _eventPublisher;
 
-    public CancelReservationUseCase(IReservationRepository reservationRepository, IEventPublisher eventPublisher)
+    public ConfirmReservationUseCase(IReservationRepository reservationRepository, IEventPublisher eventPublisher)
     {
         _reservationRepository = reservationRepository;
         _eventPublisher = eventPublisher;
@@ -17,13 +19,13 @@ public class CancelReservationUseCase
         var reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
         if (reservation == null)
-            throw new Exception("Reservation not found");
+            throw new ReservationNotFoundException(reservationId);
 
-        reservation.Cancel();
-        // Domain Event
+        reservation.Confirm();
+
         await _reservationRepository.UpdateAsync(reservation);
-
-        var domainEvent = new ReservationCancelledEvent(
+        // Publish Event
+        var domainEvent = new ReservationConfirmedEvent(
             reservation.Id,
             reservation.SessionId,
             reservation.UserId
@@ -31,6 +33,5 @@ public class CancelReservationUseCase
 
         await _eventPublisher.PublishAsync(domainEvent);
 
-        await _reservationRepository.UpdateAsync(reservation);
     }
 }

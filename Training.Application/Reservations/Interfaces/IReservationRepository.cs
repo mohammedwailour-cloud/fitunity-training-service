@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Training.Domain.Entities;
 
-namespace Training.Application.Interfaces;
+namespace Training.Application.Reservations.Interfaces;
 
 public interface IReservationRepository
 {

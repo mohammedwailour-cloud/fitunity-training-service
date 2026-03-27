@@ -1,4 +1,4 @@
-﻿using Training.Application.Interfaces;
+﻿using Training.Application.Reservations.Interfaces;
 using Training.Domain.Entities;
 
 public class GetReservationsBySessionUseCase

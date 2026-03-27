@@ -1,6 +1,6 @@
 ﻿using Training.Domain.Entities;
 
-namespace Training.Application.Interfaces;
+namespace Training.Application.Activities.Interfaces;
 
 public interface IActivityRepository
 {

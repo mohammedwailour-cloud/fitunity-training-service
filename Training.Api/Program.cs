@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Training.Application.Interfaces;
-using Training.Application.UseCases;
+using Training.Application.Common.Interfaces;
+using Training.Application.Reservations.Interfaces;
+using Training.Application.Sessions.Interfaces;
+using Training.Application.Sessions.UseCases;
 using Training.Infrastructure.Events;
 using Training.Infrastructure.Persistence;
 

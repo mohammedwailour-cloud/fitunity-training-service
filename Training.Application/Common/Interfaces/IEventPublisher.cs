@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Training.Application.Interfaces
+namespace Training.Application.Common.Interfaces
 {
     public interface IEventPublisher
     {

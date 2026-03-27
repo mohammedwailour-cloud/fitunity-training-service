@@ -1,10 +1,12 @@
 ﻿using System.Data;
-using Training.Application.DTOs;
-using Training.Application.Interfaces;
 using Training.Domain.Entities;
 using Training.Domain.Events;
 using Training.Domain.Exceptions;
 using Training.Application.Exceptions;
+using Training.Application.Reservations.DTOs;
+using Training.Application.Sessions.Interfaces;
+using Training.Application.Reservations.Interfaces;
+using Training.Application.Common.Interfaces;
 
 public class ReserveSessionUseCase
 {

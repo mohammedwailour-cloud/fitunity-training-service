@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Training.Application.Interfaces;
+using Training.Application.Reservations.Interfaces;
 using Training.Domain.Entities;
 using Training.Infrastructure.Persistence;
 

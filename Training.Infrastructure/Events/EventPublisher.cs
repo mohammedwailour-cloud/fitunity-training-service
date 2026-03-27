@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Training.Application.Interfaces;
+using Training.Application.Common.Interfaces;
 
 namespace Training.Infrastructure.Events
 {

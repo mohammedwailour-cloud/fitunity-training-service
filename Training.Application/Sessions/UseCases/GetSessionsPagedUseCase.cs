@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Training.Application.DTOs;
-using Training.Application.Interfaces;
+using Training.Application.Common.DTOs;
+using Training.Application.Sessions.Interfaces;
 using Training.Domain.Entities;
 
-namespace Training.Application.UseCases
+namespace Training.Application.Sessions.UseCases
 {
     public class GetSessionsPagedUseCase
     {

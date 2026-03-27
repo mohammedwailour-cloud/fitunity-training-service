@@ -1,6 +1,6 @@
 ﻿using Training.Domain.Enums;
 
-namespace Training.Application.DTOs;
+namespace Training.Application.Sessions.DTOs;
 
 public class CreateSessionRequest
 {

@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
-    <Folder Include="Validators\" />
+    <Folder Include="Activities\DTOs\" />
+    <Folder Include="Activities\Mappers\" />
+    <Folder Include="Reservations\Mappers\" />
   </ItemGroup>
 
   <ItemGroup>

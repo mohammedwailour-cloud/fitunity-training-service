@@ -1,7 +1,7 @@
-﻿using Training.Application.DTOs;
+﻿using Training.Application.Sessions.DTOs;
 using Training.Domain.Entities;
 
-namespace Training.Application.Mappers;
+namespace Training.Application.Sessions.Mappers;
 
 public static class SessionMapper
 {

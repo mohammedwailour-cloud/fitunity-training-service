@@ -1,6 +1,4 @@
-﻿
-
-namespace Training.Application.DTOs
+﻿namespace Training.Application.Reservations.DTOs
 {
     public class CreateReservationRequest
     {

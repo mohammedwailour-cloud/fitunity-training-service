@@ -1,10 +1,11 @@
-﻿using Training.Application.DTOs;
-using Training.Application.Interfaces;
-using Training.Application.Mappers;
+﻿using Training.Application.Common.Interfaces;
+using Training.Application.Sessions.DTOs;
+using Training.Application.Sessions.Interfaces;
+using Training.Application.Sessions.Mappers;
 using Training.Domain.Entities;
 using Training.Domain.Events;
 
-namespace Training.Application.UseCases
+namespace Training.Application.Sessions.UseCases
 {
     public class CreateSessionUseCase
     {

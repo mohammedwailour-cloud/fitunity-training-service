@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Training.Application.DTOs;
+using Training.Application.Reservations.DTOs;
 
 namespace Training.Api.Controllers
 {

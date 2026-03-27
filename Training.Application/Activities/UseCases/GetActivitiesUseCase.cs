@@ -1,7 +1,7 @@
-﻿using Training.Application.Interfaces;
+﻿using Training.Application.Activities.Interfaces;
 using Training.Domain.Entities;
 
-namespace Training.Application.UseCases;
+namespace Training.Application.Activities.UseCases;
 
 public class GetActivitiesUseCase
 {

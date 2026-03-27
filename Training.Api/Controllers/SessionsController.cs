@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Training.Application.DTOs;
-using Training.Application.UseCases;
+using Training.Application.Sessions.DTOs;
+using Training.Application.Sessions.UseCases;
 using Training.Domain.Entities;
 
 namespace Training.Api.Controllers

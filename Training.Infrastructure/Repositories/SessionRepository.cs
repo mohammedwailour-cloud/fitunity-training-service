@@ -1,7 +1,7 @@
-﻿using Training.Application.Interfaces;
-using Training.Domain.Entities;
+﻿using Training.Domain.Entities;
 using Training.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Training.Application.Sessions.Interfaces;
 
 public class SessionRepository : ISessionRepository
 {

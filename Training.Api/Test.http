@@ -1,0 +1,100 @@
+@host = http://localhost:5018
+
+##################################################
+### ACTIVITIES
+##################################################
+
+### Get all activities
+GET {{host}}/api/activities
+
+### Get activity by id
+GET {{host}}/api/activities/1
+
+### Create activity
+POST {{host}}/api/activities
+Content-Type: application/json
+
+{
+  "name": "Football",
+  "description": "Football training"
+}
+
+### Update activity
+PUT {{host}}/api/activities/1
+Content-Type: application/json
+
+{
+  "name": "Football Updated",
+  "description": "Updated description"
+}
+
+### Delete activity
+DELETE {{host}}/api/activities/1
+
+
+##################################################
+### SESSIONS
+##################################################
+
+### Get all sessions
+GET {{host}}/api/sessions
+
+### Get session by id
+GET {{host}}/api/sessions/1
+
+### Get sessions paged
+GET {{host}}/api/sessions/paged?page=1&pageSize=10
+
+### Create session
+POST {{host}}/api/sessions
+Content-Type: application/json
+
+{
+  "activityId": 1,
+  "coachId": 1,
+  "date": "2026-06-10T10:00:00",
+  "capacity": 20
+}
+
+### Update session
+PUT {{host}}/api/sessions/1
+Content-Type: application/json
+
+{
+  "activityId": 1,
+  "coachId": 1,
+  "date": "2026-06-11T10:00:00",
+  "capacity": 25
+}
+
+### Delete session
+DELETE {{host}}/api/sessions/1
+
+
+##################################################
+### RESERVATIONS
+##################################################
+
+### Reserve session
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "sessionId": 1,
+  "userId": 5
+}
+
+### Confirm reservation
+POST {{host}}/api/reservations/1/confirm
+
+### Cancel reservation
+POST {{host}}/api/reservations/1/cancel
+
+### Get reservations by session
+GET {{host}}/api/sessions/1/reservations
+
+### Get reservations by user
+GET {{host}}/api/reservations/user/5
+
+### Get reservations paged
+GET {{host}}/api/reservations/paged?page=1&pageSize=10
