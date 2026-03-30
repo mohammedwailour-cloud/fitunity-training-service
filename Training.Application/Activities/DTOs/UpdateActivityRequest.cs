@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Training.Application.Activities.DTOs
 {
-    internal class UpdateActivityRequest
+    public class UpdateActivityRequest
     {
+        public string Nom { get; set; }
+        public string Description { get; set; }
     }
 }

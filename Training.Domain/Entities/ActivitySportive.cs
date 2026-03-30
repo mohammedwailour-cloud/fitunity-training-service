@@ -32,5 +32,13 @@ namespace Training.Domain.Entities
 
             _sessions.Add(session);
         }
+        public void Update(string nom, string description)
+        {
+            if (string.IsNullOrWhiteSpace(nom))
+                throw new ArgumentException("Nom obligatoire");
+
+            Nom = nom;
+            Description = description ?? string.Empty;
+        }
     }
 }

@@ -48,5 +48,20 @@ namespace Training.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<(IEnumerable<ActivitySportive> Items, int TotalCount)>
+    GetPagedAsync(int page, int pageSize)
+        {
+            var query = _context.Activities.AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

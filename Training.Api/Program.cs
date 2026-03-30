@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Training.Application.Activities.Interfaces;
+using Training.Application.Activities.UseCases;
 using Training.Application.Activities.UseCases.Training.Application.Activities.UseCases;
 using Training.Application.Common.Interfaces;
 using Training.Application.Reservations.Interfaces;
@@ -40,6 +41,10 @@ builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<CreateActivityUseCase>();
+builder.Services.AddScoped<GetActivityByIdUseCase>();
+builder.Services.AddScoped<GetActivitiesUseCase>();
+builder.Services.AddScoped<UpdateActivityUseCase>();
+builder.Services.AddScoped<DeleteActivityUseCase>();
 
 
 var app = builder.Build();

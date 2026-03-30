@@ -9,4 +9,7 @@ public interface IActivityRepository
     Task<IEnumerable<ActivitySportive>> GetAllAsync();
     Task UpdateAsync(ActivitySportive activity);
     Task DeleteAsync(Guid id);
+
+    Task<(IEnumerable<ActivitySportive> Items, int TotalCount)>
+            GetPagedAsync(int page, int pageSize);
 }
