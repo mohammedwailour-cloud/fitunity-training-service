@@ -19,6 +19,9 @@ public interface ISessionRepository
 
     Task<(IEnumerable<Session>, int totalCount)> GetPagedAsync(int page, int pageSize);
 
-    
+    Task DeleteAsync(Guid id);
+
+
+
 }
 

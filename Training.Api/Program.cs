@@ -45,6 +45,8 @@ builder.Services.AddScoped<GetActivityByIdUseCase>();
 builder.Services.AddScoped<GetActivitiesUseCase>();
 builder.Services.AddScoped<UpdateActivityUseCase>();
 builder.Services.AddScoped<DeleteActivityUseCase>();
+builder.Services.AddScoped<DeleteSessionUseCase>();
+builder.Services.AddScoped<UpdateSessionUseCase>();
 
 
 var app = builder.Build();

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Training.Domain.Enums;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 
@@ -82,4 +83,27 @@ public class Session
     {
         return DateDebut < DateTime.UtcNow;
     }
+    public void Update(
+    DateTime dateDebut,
+    DateTime dateFin,
+    int? capacite,
+    decimal? prix,
+    bool abonnementRequis,
+    Guid? coachId)
+    {
+        if (dateFin <= dateDebut)
+            throw new Exception("Date invalide.");
+
+        if (capacite.HasValue && capacite <= 0)
+            throw new Exception("Capacité invalide.");
+
+        DateDebut = dateDebut;
+        DateFin = dateFin;
+        Capacite = capacite;
+        Prix = prix;
+        AbonnementRequis = abonnementRequis;
+        CoachId = coachId;
+    }
+
+
 }

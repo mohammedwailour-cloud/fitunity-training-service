@@ -14,6 +14,8 @@ namespace Training.Api.Controllers
         private readonly GetAllSessionsUseCase _getAllSessionsUseCase;
         private readonly GetReservationsBySessionUseCase _getReservationsBySessionUseCase;
         private readonly GetSessionsPagedUseCase _getSessionsPagedUseCase;
+        private readonly UpdateSessionUseCase _updateSessionUseCase;
+        private readonly DeleteSessionUseCase _deleteSessionUseCase;
 
 
         public SessionsController(
@@ -21,7 +23,9 @@ namespace Training.Api.Controllers
       CreateSessionUseCase createSessionUseCase,
       GetAllSessionsUseCase getAllSessionsUseCase,
       GetReservationsBySessionUseCase getReservationsBySessionUseCase,
-      GetSessionsPagedUseCase getSessionsPagedUseCase
+      GetSessionsPagedUseCase getSessionsPagedUseCase,
+      UpdateSessionUseCase updateSessionUseCase,
+      DeleteSessionUseCase deleteSessionUseCase
       )
         {
             _getSessionUseCase = getSessionUseCase;
@@ -29,6 +33,8 @@ namespace Training.Api.Controllers
             _getAllSessionsUseCase = getAllSessionsUseCase;
             _getReservationsBySessionUseCase = getReservationsBySessionUseCase;
             _getSessionsPagedUseCase = getSessionsPagedUseCase;
+            _updateSessionUseCase = updateSessionUseCase;
+            _deleteSessionUseCase = deleteSessionUseCase;
         }
         
         // [HttpGet]
@@ -72,6 +78,30 @@ namespace Training.Api.Controllers
         {
             var result = await _getSessionsPagedUseCase.ExecuteAsync(page, pageSize);
             return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<SessionResponse>> UpdateSession(
+    Guid id,
+    UpdateSessionRequest request)
+        {
+            var result = await _updateSessionUseCase.ExecuteAsync(id, request);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSession(Guid id)
+        {
+            var success = await _deleteSessionUseCase.ExecuteAsync(id);
+
+            if (!success)
+                return NotFound();
+
+            return NoContent();
         }
     }
 }

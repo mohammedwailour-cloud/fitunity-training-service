@@ -52,4 +52,14 @@ public class SessionRepository : ISessionRepository
 
         return (sessions, totalCount);
     }
+    public async Task DeleteAsync(Guid id)
+    {
+        var session = await _context.Sessions.FindAsync(id);
+
+        if (session != null)
+        {
+            _context.Sessions.Remove(session);
+            await _context.SaveChangesAsync();
+        }
+    }
 }
