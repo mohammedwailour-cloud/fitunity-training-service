@@ -12,7 +12,7 @@ namespace Training.Domain.Entities;
 
 public class Session
 {
-    public Guid Id { get; set; } // xx ici j'ai rendu set public pour que je puisse l'affecter un guid depuis le usecase 
+    public Guid Id { get; set; } 
 
     public SessionType Type { get; private set; }
 

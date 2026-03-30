@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Activities\DTOs\" />
-    <Folder Include="Activities\Mappers\" />
     <Folder Include="Reservations\Mappers\" />
   </ItemGroup>
 

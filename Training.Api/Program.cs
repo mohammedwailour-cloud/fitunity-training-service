@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Training.Application.Activities.Interfaces;
+using Training.Application.Activities.UseCases.Training.Application.Activities.UseCases;
 using Training.Application.Common.Interfaces;
 using Training.Application.Reservations.Interfaces;
 using Training.Application.Sessions.Interfaces;
 using Training.Application.Sessions.UseCases;
 using Training.Infrastructure.Events;
 using Training.Infrastructure.Persistence;
+using Training.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,9 @@ builder.Services.AddScoped<GetReservationsPagedUseCase>();
 builder.Services.AddScoped<GetReservationsBySessionUseCase>();
 
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();
+
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<CreateActivityUseCase>();
 
 
 var app = builder.Build();
