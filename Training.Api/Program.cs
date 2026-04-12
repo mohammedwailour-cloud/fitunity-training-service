@@ -3,7 +3,11 @@ using Scalar.AspNetCore;
 using Training.Application.Activities.Interfaces;
 using Training.Application.Activities.UseCases;
 using Training.Application.Activities.UseCases.Training.Application.Activities.UseCases;
+using Training.Application.Coachs.UseCases;
+using Training.Application.Coachs.Interfaces;
 using Training.Application.Common.Interfaces;
+using Training.Application.Events.Interfaces;
+using Training.Application.Events.UseCases;
 using Training.Application.Reservations.Interfaces;
 using Training.Application.Sessions.Interfaces;
 using Training.Application.Sessions.UseCases;
@@ -47,6 +51,21 @@ builder.Services.AddScoped<UpdateActivityUseCase>();
 builder.Services.AddScoped<DeleteActivityUseCase>();
 builder.Services.AddScoped<DeleteSessionUseCase>();
 builder.Services.AddScoped<UpdateSessionUseCase>();
+
+builder.Services.AddScoped<ICoachRepository, CoachRepository>();
+builder.Services.AddScoped<CreateCoachUseCase>();
+builder.Services.AddScoped<GetCoachByIdUseCase>();
+builder.Services.AddScoped<GetCoachesUseCase>();
+builder.Services.AddScoped<DeleteCoachUseCase>();
+builder.Services.AddScoped<UpdateCoachUseCase>();
+
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+
+builder.Services.AddScoped<CreateEventUseCase>();
+builder.Services.AddScoped<GetEventByIdUseCase>();
+builder.Services.AddScoped<GetEventsUseCase>();
+builder.Services.AddScoped<UpdateEventUseCase>();
+builder.Services.AddScoped<DeleteEventUseCase>();
 
 
 var app = builder.Build();

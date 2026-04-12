@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Training.Domain.Entities;
+﻿using Training.Domain.Entities;
 using Training.Domain.Events;
 using Training.Domain.Exceptions;
 using Training.Application.Exceptions;
@@ -35,7 +34,6 @@ public class ReserveSessionUseCase
         if (session.IsInPast())
             throw new InvalidSessionStateException("Cannot reserve a past session");
 
-
         // 3. récupérer réservations existantes
         var reservations = (await _reservationRepository
             .GetBySessionIdAsync(request.SessionId))
@@ -51,21 +49,22 @@ public class ReserveSessionUseCase
 
         // 6. créer réservation
         var reservation = new Reservation(
-            request.SessionId,
-            request.UserId
+            request.UserId,
+            request.SessionId
         );
 
-        // Domain Event
         await _reservationRepository.AddAsync(reservation);
+
+        // 7. publier événement domaine
         var domainEvent = new ReservationCreatedEvent(
-         reservation.Id,
-         reservation.SessionId,
-         reservation.UserId
+            reservation.Id,
+            reservation.SessionId,
+            reservation.UserId
         );
 
         await _eventPublisher.PublishAsync(domainEvent);
 
-        // 7. retour DTO
+        // 8. retour DTO
         return new ReservationResponse
         {
             Id = reservation.Id,

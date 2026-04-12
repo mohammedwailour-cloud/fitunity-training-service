@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Training.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,8 +16,8 @@ namespace Training.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nom = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Nom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -25,25 +25,12 @@ namespace Training.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Coaches",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nom = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Specialite = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Coaches", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Events",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Titre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Titre = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Capacite = table.Column<int>(type: "int", nullable: false)
                 },
@@ -53,11 +40,31 @@ namespace Training.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Coaches",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Nom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    ActivityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Coaches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Coaches_Activities_ActivityId",
+                        column: x => x.ActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Sessions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateDebut = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateFin = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Capacite = table.Column<int>(type: "int", nullable: true),
@@ -65,27 +72,29 @@ namespace Training.Infrastructure.Migrations
                     AbonnementRequis = table.Column<bool>(type: "bit", nullable: false),
                     ActivityId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CoachId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ActivitySportiveId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Sessions_Activities_ActivitySportiveId",
-                        column: x => x.ActivitySportiveId,
+                        name: "FK_Sessions_Activities_ActivityId",
+                        column: x => x.ActivityId,
                         principalTable: "Activities",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Sessions_Coaches_CoachId",
                         column: x => x.CoachId,
                         principalTable: "Coaches",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Sessions_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -96,7 +105,7 @@ namespace Training.Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateReservation = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -110,14 +119,20 @@ namespace Training.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_SessionId",
-                table: "Reservations",
-                column: "SessionId");
+                name: "IX_Coaches_ActivityId",
+                table: "Coaches",
+                column: "ActivityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Sessions_ActivitySportiveId",
+                name: "IX_Reservations_SessionId_UserId",
+                table: "Reservations",
+                columns: new[] { "SessionId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_ActivityId",
                 table: "Sessions",
-                column: "ActivitySportiveId");
+                column: "ActivityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sessions_CoachId",
@@ -140,13 +155,13 @@ namespace Training.Infrastructure.Migrations
                 name: "Sessions");
 
             migrationBuilder.DropTable(
-                name: "Activities");
-
-            migrationBuilder.DropTable(
                 name: "Coaches");
 
             migrationBuilder.DropTable(
                 name: "Events");
+
+            migrationBuilder.DropTable(
+                name: "Activities");
         }
     }
 }

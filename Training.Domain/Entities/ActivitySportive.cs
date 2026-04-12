@@ -11,18 +11,33 @@ namespace Training.Domain.Entities
     {
         public Guid Id { get; private set; }
         public string Nom { get; private set; }
-        public string Description { get; private set; }
+        public string? Description { get; private set; }
 
         private readonly List<Session> _sessions = new();
         public IReadOnlyCollection<Session> Sessions => _sessions.AsReadOnly();
 
+        private readonly List<Coach> _coaches = new();
+        public IReadOnlyCollection<Coach> Coaches => _coaches.AsReadOnly();
+
         private ActivitySportive() { }
 
-        public ActivitySportive(string nom, string description)
+        public ActivitySportive(string nom, string? description)
         {
+            if (string.IsNullOrWhiteSpace(nom))
+                throw new ArgumentException("Nom is required");
+
             Id = Guid.NewGuid();
-            Nom = nom ?? throw new ArgumentNullException(nameof(nom));
-            Description = description ?? string.Empty;
+            Nom = nom;
+            Description = description;
+        }
+
+        public void Update(string nom, string? description)
+        {
+            if (string.IsNullOrWhiteSpace(nom))
+                throw new ArgumentException("Nom is required");
+
+            Nom = nom;
+            Description = description;
         }
 
         public void AjouterSession(Session session)
@@ -32,13 +47,13 @@ namespace Training.Domain.Entities
 
             _sessions.Add(session);
         }
-        public void Update(string nom, string description)
-        {
-            if (string.IsNullOrWhiteSpace(nom))
-                throw new ArgumentException("Nom obligatoire");
 
-            Nom = nom;
-            Description = description ?? string.Empty;
+        public void AjouterCoach(Coach coach)
+        {
+            if (coach == null)
+                throw new ArgumentNullException(nameof(coach));
+
+            _coaches.Add(coach);
         }
     }
 }

@@ -1,34 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Training.Domain.Entities;
+﻿namespace Training.Domain.Entities;
 
 public class Coach
 {
     public Guid Id { get; private set; }
     public string Nom { get; private set; }
-    public string Specialite { get; private set; }
+    public string Email { get; private set; }
 
-    private readonly List<Session> _sessions = new();
-    public IReadOnlyCollection<Session> Sessions => _sessions.AsReadOnly();
+    public Guid ActivityId { get; private set; }
+    public ActivitySportive Activity { get; private set; }
 
     private Coach() { }
 
-    public Coach(string nom, string specialite)
+    public Coach(string nom, string email, Guid activityId)
     {
+        if (string.IsNullOrWhiteSpace(nom))
+            throw new ArgumentException("Nom is required");
+
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required");
+
+        if (activityId == Guid.Empty)
+            throw new ArgumentException("ActivityId is required");
+
         Id = Guid.NewGuid();
-        Nom = nom ?? throw new ArgumentNullException(nameof(nom));
-        Specialite = specialite ?? string.Empty;
+        Nom = nom;
+        Email = email;
+        ActivityId = activityId;
     }
 
-    public void AssignerSession(Session session)
+    public void Update(string nom, string email)
     {
-        if (session == null)
-            throw new ArgumentNullException(nameof(session));
+        if (string.IsNullOrWhiteSpace(nom))
+            throw new ArgumentException("Nom is required");
 
-        _sessions.Add(session);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required");
+
+        Nom = nom;
+        Email = email;
     }
 }

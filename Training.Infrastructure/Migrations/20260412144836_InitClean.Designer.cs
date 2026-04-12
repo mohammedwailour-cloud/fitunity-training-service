@@ -12,8 +12,8 @@ using Training.Infrastructure.Persistence;
 namespace Training.Infrastructure.Migrations
 {
     [DbContext(typeof(TrainingDbContext))]
-    [Migration("20260311002901_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260412144836_InitClean")]
+    partial class InitClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,12 +32,13 @@ namespace Training.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -50,15 +51,22 @@ namespace Training.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Specialite")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("Coaches");
                 });
@@ -76,12 +84,13 @@ namespace Training.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Titre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
 
@@ -100,15 +109,17 @@ namespace Training.Infrastructure.Migrations
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId");
+                    b.HasIndex("SessionId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("Reservations");
                 });
@@ -123,9 +134,6 @@ namespace Training.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<Guid?>("ActivityId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ActivitySportiveId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Capacite")
@@ -146,12 +154,13 @@ namespace Training.Infrastructure.Migrations
                     b.Property<decimal?>("Prix")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActivitySportiveId");
+                    b.HasIndex("ActivityId");
 
                     b.HasIndex("CoachId");
 
@@ -160,37 +169,56 @@ namespace Training.Infrastructure.Migrations
                     b.ToTable("Sessions");
                 });
 
+            modelBuilder.Entity("Training.Domain.Entities.Coach", b =>
+                {
+                    b.HasOne("Training.Domain.Entities.ActivitySportive", "Activity")
+                        .WithMany("Coaches")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+                });
+
             modelBuilder.Entity("Training.Domain.Entities.Reservation", b =>
                 {
-                    b.HasOne("Training.Domain.Entities.Session", null)
+                    b.HasOne("Training.Domain.Entities.Session", "Session")
                         .WithMany("Reservations")
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("Training.Domain.Entities.Session", b =>
                 {
-                    b.HasOne("Training.Domain.Entities.ActivitySportive", null)
+                    b.HasOne("Training.Domain.Entities.ActivitySportive", "Activity")
                         .WithMany("Sessions")
-                        .HasForeignKey("ActivitySportiveId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Training.Domain.Entities.Coach", null)
-                        .WithMany("Sessions")
-                        .HasForeignKey("CoachId");
+                    b.HasOne("Training.Domain.Entities.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Training.Domain.Entities.Event", null)
+                    b.HasOne("Training.Domain.Entities.Event", "Event")
                         .WithMany("Sessions")
-                        .HasForeignKey("EventId");
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("Training.Domain.Entities.ActivitySportive", b =>
                 {
-                    b.Navigation("Sessions");
-                });
+                    b.Navigation("Coaches");
 
-            modelBuilder.Entity("Training.Domain.Entities.Coach", b =>
-                {
                     b.Navigation("Sessions");
                 });
 
