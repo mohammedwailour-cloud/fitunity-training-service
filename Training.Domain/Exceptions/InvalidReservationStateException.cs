@@ -1,9 +1,5 @@
-﻿namespace Training.Application.Exceptions;
+﻿namespace Training.Domain.Exceptions;
 
 public class InvalidReservationStateException : Exception
 {
-    public InvalidReservationStateException(string message)
-        : base(message)
-    {
-    }
 }

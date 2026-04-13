@@ -1,4 +1,5 @@
 ﻿using Training.Domain.Enums;
+using Training.Domain.Exceptions;
 
 namespace Training.Domain.Entities;
 
@@ -18,10 +19,10 @@ public class Reservation
     public Reservation(Guid userId, Guid sessionId)
     {
         if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
+            throw new InvalidReservationUserException();
 
         if (sessionId == Guid.Empty)
-            throw new ArgumentException("SessionId is required");
+            throw new InvalidReservationSessionException();
 
         Id = Guid.NewGuid();
         UserId = userId;
@@ -33,7 +34,7 @@ public class Reservation
     public void Confirm()
     {
         if (Status == ReservationStatus.Annulee)
-            throw new InvalidOperationException("Impossible de confirmer une réservation annulée");
+            throw new InvalidReservationStateException();
 
         Status = ReservationStatus.Confirmee;
     }

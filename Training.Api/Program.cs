@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Training.Application.Activities.Interfaces;
 using Training.Application.Activities.UseCases;
@@ -17,10 +17,7 @@ using Training.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<TrainingDbContext>(options =>
     options.UseSqlServer(
@@ -67,10 +64,8 @@ builder.Services.AddScoped<GetEventsUseCase>();
 builder.Services.AddScoped<UpdateEventUseCase>();
 builder.Services.AddScoped<DeleteEventUseCase>();
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -85,3 +80,7 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program
+{
+}

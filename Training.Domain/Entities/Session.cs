@@ -1,4 +1,5 @@
 ﻿using Training.Domain.Enums;
+using Training.Domain.Exceptions;
 
 namespace Training.Domain.Entities;
 
@@ -42,13 +43,13 @@ public class Session
         Guid? eventId = null)
     {
         if (dateFin <= dateDebut)
-            throw new ArgumentException("Date invalide");
+            throw new InvalidSessionDatesException();
 
         if (capacite.HasValue && capacite.Value <= 0)
-            throw new ArgumentException("Capacité invalide");
+            throw new InvalidSessionCapacityException();
 
         if (prix.HasValue && prix.Value < 0)
-            throw new ArgumentException("Prix invalide");
+            throw new InvalidSessionPriceException();
 
         Id = Guid.NewGuid();
         Type = type;
@@ -70,14 +71,20 @@ public class Session
         bool abonnementRequis,
         Guid? coachId)
     {
+        if (IsInPast())
+            throw new InvalidSessionStateException();
+
         if (dateFin <= dateDebut)
-            throw new ArgumentException("Date invalide");
+            throw new InvalidSessionDatesException();
 
         if (capacite.HasValue && capacite.Value <= 0)
-            throw new ArgumentException("Capacité invalide");
+            throw new InvalidSessionCapacityException();
 
         if (prix.HasValue && prix.Value < 0)
-            throw new ArgumentException("Prix invalide");
+            throw new InvalidSessionPriceException();
+
+        if (capacite.HasValue && capacite.Value < _reservations.Count)
+            throw new SessionCapacityConflictException();
 
         DateDebut = dateDebut;
         DateFin = dateFin;
@@ -90,13 +97,13 @@ public class Session
     public void AjouterReservation(Guid userId)
     {
         if (IsInPast())
-            throw new InvalidOperationException("Impossible de réserver une session passée");
+            throw new InvalidSessionStateException();
 
         if (IsFull(_reservations.Count))
-            throw new InvalidOperationException("Session complète");
+            throw new SessionFullException();
 
         if (_reservations.Any(r => r.UserId == userId))
-            throw new InvalidOperationException("Utilisateur déjà inscrit");
+            throw new DuplicateReservationException();
 
         var reservation = new Reservation(userId, Id);
         _reservations.Add(reservation);

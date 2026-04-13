@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
+﻿using Training.Domain.Exceptions;
 
 namespace Training.Domain.Entities
 {
@@ -24,7 +19,7 @@ namespace Training.Domain.Entities
         public ActivitySportive(string nom, string? description)
         {
             if (string.IsNullOrWhiteSpace(nom))
-                throw new ArgumentException("Nom is required");
+                throw new InvalidActivityNameException();
 
             Id = Guid.NewGuid();
             Nom = nom;
@@ -34,7 +29,7 @@ namespace Training.Domain.Entities
         public void Update(string nom, string? description)
         {
             if (string.IsNullOrWhiteSpace(nom))
-                throw new ArgumentException("Nom is required");
+                throw new InvalidActivityNameException();
 
             Nom = nom;
             Description = description;

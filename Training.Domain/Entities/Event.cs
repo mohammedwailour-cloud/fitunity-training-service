@@ -1,4 +1,6 @@
-﻿namespace Training.Domain.Entities;
+﻿using Training.Domain.Exceptions;
+
+namespace Training.Domain.Entities;
 
 public class Event
 {
@@ -16,13 +18,13 @@ public class Event
     public Event(string titre, string? description, DateTime date, int capacite)
     {
         if (string.IsNullOrWhiteSpace(titre))
-            throw new ArgumentException("Titre obligatoire");
+            throw new InvalidEventTitleException();
 
         if (date < DateTime.UtcNow)
-            throw new ArgumentException("La date ne peut pas être dans le passé");
+            throw new InvalidEventDateException();
 
         if (capacite <= 0)
-            throw new ArgumentException("La capacité doit être positive");
+            throw new InvalidEventCapacityException();
 
         Id = Guid.NewGuid();
         Titre = titre;
@@ -34,13 +36,13 @@ public class Event
     public void Update(string titre, string? description, DateTime date, int capacite)
     {
         if (string.IsNullOrWhiteSpace(titre))
-            throw new ArgumentException("Titre obligatoire");
+            throw new InvalidEventTitleException();
 
         if (date < DateTime.UtcNow)
-            throw new ArgumentException("La date ne peut pas être dans le passé");
+            throw new InvalidEventDateException();
 
         if (capacite <= 0)
-            throw new ArgumentException("La capacité doit être positive");
+            throw new InvalidEventCapacityException();
 
         Titre = titre;
         Description = description;

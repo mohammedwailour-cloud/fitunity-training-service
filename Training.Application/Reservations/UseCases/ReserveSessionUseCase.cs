@@ -25,29 +25,23 @@ public class ReserveSessionUseCase
 
     public async Task<ReservationResponse> ExecuteAsync(CreateReservationRequest request)
     {
-        // 1. vérifier session existe
         var session = await _sessionRepository.GetByIdAsync(request.SessionId);
         if (session == null)
             throw new SessionNotFoundException(request.SessionId);
 
-        // 2. vérifier session pas dans le passé
         if (session.IsInPast())
-            throw new InvalidSessionStateException("Cannot reserve a past session");
+            throw new InvalidSessionStateException();
 
-        // 3. récupérer réservations existantes
         var reservations = (await _reservationRepository
             .GetBySessionIdAsync(request.SessionId))
             .ToList();
 
-        // 4. vérifier capacité
         if (session.IsFull(reservations.Count))
             throw new SessionFullException();
 
-        // 5. vérifier doublon
         if (reservations.Any(r => r.UserId == request.UserId))
             throw new DuplicateReservationException();
 
-        // 6. créer réservation
         var reservation = new Reservation(
             request.UserId,
             request.SessionId
@@ -55,7 +49,6 @@ public class ReserveSessionUseCase
 
         await _reservationRepository.AddAsync(reservation);
 
-        // 7. publier événement domaine
         var domainEvent = new ReservationCreatedEvent(
             reservation.Id,
             reservation.SessionId,
@@ -64,7 +57,6 @@ public class ReserveSessionUseCase
 
         await _eventPublisher.PublishAsync(domainEvent);
 
-        // 8. retour DTO
         return new ReservationResponse
         {
             Id = reservation.Id,

@@ -1,4 +1,6 @@
-﻿namespace Training.Domain.Entities;
+﻿using Training.Domain.Exceptions;
+
+namespace Training.Domain.Entities;
 
 public class Coach
 {
@@ -14,13 +16,13 @@ public class Coach
     public Coach(string nom, string email, Guid activityId)
     {
         if (string.IsNullOrWhiteSpace(nom))
-            throw new ArgumentException("Nom is required");
+            throw new InvalidCoachNameException();
 
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("Email is required");
+            throw new InvalidCoachEmailException();
 
         if (activityId == Guid.Empty)
-            throw new ArgumentException("ActivityId is required");
+            throw new InvalidCoachActivityException();
 
         Id = Guid.NewGuid();
         Nom = nom;
@@ -31,10 +33,10 @@ public class Coach
     public void Update(string nom, string email)
     {
         if (string.IsNullOrWhiteSpace(nom))
-            throw new ArgumentException("Nom is required");
+            throw new InvalidCoachNameException();
 
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("Email is required");
+            throw new InvalidCoachEmailException();
 
         Nom = nom;
         Email = email;
