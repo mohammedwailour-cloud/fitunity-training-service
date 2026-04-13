@@ -1,6 +1,11 @@
-﻿using System.Net;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using Training.Domain.Entities;
 using Training.Domain.Enums;
 using Xunit;
@@ -9,6 +14,10 @@ namespace Training.Tests.Integration;
 
 public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 {
+    private const string JwtIssuer = "Training.Api";
+    private const string JwtAudience = "Training.Client";
+    private const string JwtKey = "TrainingApiDevKey-PleaseReplaceWithAStrongSecret-2026";
+
     private readonly TrainingApiFactory _factory;
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -87,11 +96,11 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(session, reservation);
         var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(userId));
 
         var response = await client.PostAsJsonAsync("/api/reservations", new
         {
-            sessionId = session.Id,
-            userId = userId
+            sessionId = session.Id
         });
 
         await AssertErrorAsync(response, HttpStatusCode.Conflict, "duplicate_reservation");
@@ -113,11 +122,11 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(session, reservation);
         var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
 
         var response = await client.PostAsJsonAsync("/api/reservations", new
         {
-            sessionId = session.Id,
-            userId = Guid.NewGuid()
+            sessionId = session.Id
         });
 
         await AssertErrorAsync(response, HttpStatusCode.Conflict, "session_full");
@@ -138,11 +147,11 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(session);
         var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
 
         var response = await client.PostAsJsonAsync("/api/reservations", new
         {
-            sessionId = session.Id,
-            userId = Guid.NewGuid()
+            sessionId = session.Id
         });
 
         await AssertErrorAsync(response, HttpStatusCode.BadRequest, "invalid_session_state");
@@ -205,6 +214,27 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         Assert.Equal((int)expectedStatusCode, payload!.StatusCode);
         Assert.Equal(expectedError, payload.Error);
         Assert.False(string.IsNullOrWhiteSpace(payload.Message));
+    }
+
+    private static string CreateJwt(Guid userId, string role = "User")
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Role, role)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: JwtIssuer,
+            audience: JwtAudience,
+            claims: claims,
+            notBefore: DateTime.UtcNow.AddMinutes(-1),
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private sealed class ErrorResponse

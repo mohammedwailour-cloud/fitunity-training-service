@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using Training.Api.Security;
 using Training.Application.Activities.Interfaces;
 using Training.Application.Activities.UseCases;
 using Training.Application.Activities.UseCases.Training.Application.Activities.UseCases;
-using Training.Application.Coachs.UseCases;
 using Training.Application.Coachs.Interfaces;
+using Training.Application.Coachs.UseCases;
 using Training.Application.Common.Interfaces;
 using Training.Application.Events.Interfaces;
 using Training.Application.Events.UseCases;
@@ -16,9 +20,29 @@ using Training.Infrastructure.Persistence;
 using Training.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContext, JwtUserContext>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+builder.Services.AddAuthorization();
 builder.Services.AddDbContext<TrainingDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
@@ -74,6 +98,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 

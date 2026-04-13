@@ -1,30 +1,35 @@
-﻿using Training.Domain.Entities;
-using Training.Domain.Events;
-using Training.Domain.Exceptions;
+﻿using Training.Application.Common.Interfaces;
 using Training.Application.Exceptions;
 using Training.Application.Reservations.DTOs;
-using Training.Application.Sessions.Interfaces;
 using Training.Application.Reservations.Interfaces;
-using Training.Application.Common.Interfaces;
+using Training.Application.Sessions.Interfaces;
+using Training.Domain.Entities;
+using Training.Domain.Events;
+using Training.Domain.Exceptions;
 
 public class ReserveSessionUseCase
 {
     private readonly ISessionRepository _sessionRepository;
     private readonly IReservationRepository _reservationRepository;
     private readonly IEventPublisher _eventPublisher;
+    private readonly IUserContext _userContext;
 
     public ReserveSessionUseCase(
         ISessionRepository sessionRepository,
         IReservationRepository reservationRepository,
-        IEventPublisher eventPublisher)
+        IEventPublisher eventPublisher,
+        IUserContext userContext)
     {
         _sessionRepository = sessionRepository;
         _reservationRepository = reservationRepository;
         _eventPublisher = eventPublisher;
+        _userContext = userContext;
     }
 
     public async Task<ReservationResponse> ExecuteAsync(CreateReservationRequest request)
     {
+        var userId = _userContext.UserId;
+
         var session = await _sessionRepository.GetByIdAsync(request.SessionId);
         if (session == null)
             throw new SessionNotFoundException(request.SessionId);
@@ -39,11 +44,11 @@ public class ReserveSessionUseCase
         if (session.IsFull(reservations.Count))
             throw new SessionFullException();
 
-        if (reservations.Any(r => r.UserId == request.UserId))
+        if (reservations.Any(r => r.UserId == userId))
             throw new DuplicateReservationException();
 
         var reservation = new Reservation(
-            request.UserId,
+            userId,
             request.SessionId
         );
 

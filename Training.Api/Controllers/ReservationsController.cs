@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Training.Application.Reservations.DTOs;
 
 namespace Training.Api.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Admin,User,Coach")]
     [Route("api/[controller]")]
     public class ReservationsController : ControllerBase
     {
@@ -31,6 +32,7 @@ namespace Training.Api.Controllers
 
             return Ok(result);
         }
+
         [HttpPatch("{id}/confirm")]
         public async Task<IActionResult> ConfirmReservation(Guid id)
         {
