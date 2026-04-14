@@ -13,16 +13,20 @@ namespace Training.Api.Controllers
         private readonly ConfirmReservationUseCase _confirmReservationUseCase;
         private readonly CancelReservationUseCase _cancelReservationUseCase;
         private readonly GetReservationsPagedUseCase _getReservationsPagedUseCase;
+        private readonly GetReservationsByUserUseCase _getReservationsByUserUseCase;
 
-        public ReservationsController(ReserveSessionUseCase reserveSessionUseCase,
+        public ReservationsController(
+            ReserveSessionUseCase reserveSessionUseCase,
             ConfirmReservationUseCase confirmReservationUseCase,
             CancelReservationUseCase cancelReservationUseCase,
-            GetReservationsPagedUseCase getReservationsPagedUseCase)
+            GetReservationsPagedUseCase getReservationsPagedUseCase,
+            GetReservationsByUserUseCase getReservationsByUserUseCase)
         {
             _reserveSessionUseCase = reserveSessionUseCase;
             _confirmReservationUseCase = confirmReservationUseCase;
             _cancelReservationUseCase = cancelReservationUseCase;
             _getReservationsPagedUseCase = getReservationsPagedUseCase;
+            _getReservationsByUserUseCase = getReservationsByUserUseCase;
         }
 
         [HttpPost]
@@ -45,6 +49,13 @@ namespace Training.Api.Controllers
         {
             await _cancelReservationUseCase.ExecuteAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyReservations()
+        {
+            var result = await _getReservationsByUserUseCase.ExecuteForCurrentUserAsync();
+            return Ok(result);
         }
 
         [HttpGet]
