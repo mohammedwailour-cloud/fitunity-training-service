@@ -17,6 +17,9 @@ public class Session
 
     public bool AbonnementRequis { get; private set; }
 
+    public Guid SpaceId { get; private set; }
+    public Space? Space { get; private set; }
+
     public Guid? ActivityId { get; private set; }
     public ActivitySportive? Activity { get; private set; }
 
@@ -38,6 +41,7 @@ public class Session
         int? capacite,
         decimal? prix,
         bool abonnementRequis,
+        Guid spaceId,
         Guid? activityId = null,
         Guid? coachId = null,
         Guid? eventId = null)
@@ -51,6 +55,9 @@ public class Session
         if (prix.HasValue && prix.Value < 0)
             throw new InvalidSessionPriceException();
 
+        if (spaceId == Guid.Empty)
+            throw new InvalidSessionSpaceException();
+
         Id = Guid.NewGuid();
         Type = type;
         DateDebut = dateDebut;
@@ -58,6 +65,7 @@ public class Session
         Capacite = capacite;
         Prix = prix;
         AbonnementRequis = abonnementRequis;
+        SpaceId = spaceId;
         ActivityId = activityId;
         CoachId = coachId;
         EventId = eventId;
@@ -69,6 +77,7 @@ public class Session
         int? capacite,
         decimal? prix,
         bool abonnementRequis,
+        Guid spaceId,
         Guid? coachId)
     {
         if (IsInPast())
@@ -83,6 +92,9 @@ public class Session
         if (prix.HasValue && prix.Value < 0)
             throw new InvalidSessionPriceException();
 
+        if (spaceId == Guid.Empty)
+            throw new InvalidSessionSpaceException();
+
         if (capacite.HasValue && capacite.Value < _reservations.Count)
             throw new SessionCapacityConflictException();
 
@@ -91,6 +103,7 @@ public class Session
         Capacite = capacite;
         Prix = prix;
         AbonnementRequis = abonnementRequis;
+        SpaceId = spaceId;
         CoachId = coachId;
     }
 
@@ -105,7 +118,7 @@ public class Session
         if (_reservations.Any(r => r.UserId == userId))
             throw new DuplicateReservationException();
 
-        var reservation = new Reservation(userId, Id);
+        Reservation reservation = new(userId, Id);
         _reservations.Add(reservation);
     }
 

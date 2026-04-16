@@ -16,6 +16,8 @@ public class CreateSessionRequest
 
     public bool AbonnementRequis { get; set; }
 
+    public Guid SpaceId { get; set; }
+
     public Guid? ActivityId { get; set; }
 
     public Guid? CoachId { get; set; }

@@ -33,6 +33,20 @@ namespace Training.Infrastructure.Repositories
             return await _context.Activities.ToListAsync();
         }
 
+        public async Task<IEnumerable<ActivitySportive>> GetByIdsAsync(IEnumerable<Guid> activityIds)
+        {
+            List<Guid> activityIdList = activityIds.Distinct().ToList();
+
+            if (activityIdList.Count == 0)
+            {
+                return Array.Empty<ActivitySportive>();
+            }
+
+            return await _context.Activities
+                .Where(activity => activityIdList.Contains(activity.Id))
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(ActivitySportive activity)
         {
             _context.Activities.Update(activity);
@@ -41,7 +55,7 @@ namespace Training.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var activity = await _context.Activities.FindAsync(id);
+            ActivitySportive? activity = await _context.Activities.FindAsync(id);
             if (activity != null)
             {
                 _context.Activities.Remove(activity);
@@ -50,13 +64,13 @@ namespace Training.Infrastructure.Repositories
         }
 
         public async Task<(IEnumerable<ActivitySportive> Items, int TotalCount)>
-    GetPagedAsync(int page, int pageSize)
+            GetPagedAsync(int page, int pageSize)
         {
-            var query = _context.Activities.AsQueryable();
+            IQueryable<ActivitySportive> query = _context.Activities.AsQueryable();
 
-            var totalCount = await query.CountAsync();
+            int totalCount = await query.CountAsync();
 
-            var items = await query
+            List<ActivitySportive> items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

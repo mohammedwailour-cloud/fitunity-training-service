@@ -14,12 +14,10 @@ public class GetAllSessionsUseCase
 
     public async Task<List<SessionResponse>> ExecuteAsync()
     {
-        var sessions = await _repository.GetAllAsync();
-        if (sessions == null)
-            return null;
+        IEnumerable<Session> sessions = await _repository.GetAllAsync();
 
         return sessions
-            .Select(SessionMapper.ToResponse)
+            .Select(session => SessionMapper.ToResponse(session, session.Space))
             .ToList();
     }
 }

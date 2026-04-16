@@ -16,14 +16,44 @@ namespace Training.Infrastructure.Persistence
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Coach> Coaches { get; set; }
+        public DbSet<Space> Spaces { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // -----------------------------
-            // ActivitySportive
-            // -----------------------------
+            modelBuilder.Entity<Space>(entity =>
+            {
+                entity.HasKey(space => space.Id);
+
+                entity.Property(space => space.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(space => space.Code)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasIndex(space => space.Code)
+                    .IsUnique();
+
+                entity.Property(space => space.Description)
+                    .HasMaxLength(500);
+
+                entity.Property(space => space.Type)
+                    .IsRequired()
+                    .HasConversion<string>();
+
+                entity.Property(space => space.Capacity)
+                    .IsRequired(false);
+
+                entity.Property(space => space.SupportsSeatManagement)
+                    .IsRequired();
+
+                entity.Property(space => space.IsActive)
+                    .IsRequired();
+            });
+
             modelBuilder.Entity<ActivitySportive>(entity =>
             {
                 entity.HasKey(a => a.Id);
@@ -46,9 +76,6 @@ namespace Training.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // -----------------------------
-            // Coach
-            // -----------------------------
             modelBuilder.Entity<Coach>(entity =>
             {
                 entity.HasKey(c => c.Id);
@@ -67,9 +94,6 @@ namespace Training.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // -----------------------------
-            // Event
-            // -----------------------------
             modelBuilder.Entity<Event>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -93,9 +117,6 @@ namespace Training.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // -----------------------------
-            // Session
-            // -----------------------------
             modelBuilder.Entity<Session>(entity =>
             {
                 entity.HasKey(s => s.Id);
@@ -118,6 +139,14 @@ namespace Training.Infrastructure.Persistence
                 entity.Property(s => s.AbonnementRequis)
                       .IsRequired();
 
+                entity.Property(s => s.SpaceId)
+                      .IsRequired();
+
+                entity.HasOne<Space>()
+                      .WithMany()
+                      .HasForeignKey(s => s.SpaceId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne(s => s.Activity)
                       .WithMany(a => a.Sessions)
                       .HasForeignKey(s => s.ActivityId)
@@ -139,9 +168,6 @@ namespace Training.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // -----------------------------
-            // Reservation
-            // -----------------------------
             modelBuilder.Entity<Reservation>(entity =>
             {
                 entity.HasKey(r => r.Id);

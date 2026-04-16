@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Training.Application.Common.DTOs;
+﻿using Training.Application.Common.DTOs;
+using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.Interfaces;
+using Training.Application.Sessions.Mappers;
 using Training.Domain.Entities;
 
 namespace Training.Application.Sessions.UseCases
@@ -18,18 +15,20 @@ namespace Training.Application.Sessions.UseCases
             _sessionRepository = sessionRepository;
         }
 
-        public async Task<PagedResult<Session>> ExecuteAsync(int page, int pageSize)
+        public async Task<PagedResult<SessionResponse>> ExecuteAsync(int page, int pageSize)
         {
-            var (sessions, totalCount) =
-                await _sessionRepository.GetPagedAsync(page, pageSize);
+            (IEnumerable<Session> sessions, int totalCount) = await _sessionRepository.GetPagedAsync(page, pageSize);
+            List<SessionResponse> responses = sessions
+                .Select(session => SessionMapper.ToResponse(session, session.Space))
+                .ToList();
 
-            return new PagedResult<Session>
+            return new PagedResult<SessionResponse>
             {
                 Page = page,
                 PageSize = pageSize,
                 TotalItems = totalCount,
                 TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-                Data = sessions
+                Data = responses
             };
         }
     }

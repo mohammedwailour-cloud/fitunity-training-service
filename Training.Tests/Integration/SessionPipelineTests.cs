@@ -30,9 +30,11 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     public async Task CreateSession_WithInvalidDates_Returns400()
     {
         await _factory.ResetDatabaseAsync();
-        var client = _factory.CreateClient();
+        Space space = CreateActiveSpace("SPACE-DATES");
+        await _factory.SeedAsync(space);
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/api/sessions", new
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
             type = (int)SessionType.CoachingGroupe,
             dateDebut = DateTime.UtcNow.AddDays(5),
@@ -40,6 +42,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 10,
             prix = 20m,
             abonnementRequis = false,
+            spaceId = space.Id,
             activityId = (Guid?)null,
             coachId = (Guid?)null,
             eventId = (Guid?)null
@@ -53,26 +56,29 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
 
-        var session = new Session(
+        Space space = CreateActiveSpace("SPACE-CAPACITY");
+        Session session = new(
             SessionType.CoachingGroupe,
             DateTime.UtcNow.AddDays(3),
             DateTime.UtcNow.AddDays(3).AddHours(1),
             3,
             25m,
-            false);
-        var reservation1 = new Reservation(Guid.NewGuid(), session.Id);
-        var reservation2 = new Reservation(Guid.NewGuid(), session.Id);
+            false,
+            space.Id);
+        Reservation reservation1 = new(Guid.NewGuid(), session.Id);
+        Reservation reservation2 = new(Guid.NewGuid(), session.Id);
 
-        await _factory.SeedAsync(session, reservation1, reservation2);
-        var client = _factory.CreateClient();
+        await _factory.SeedAsync(space, session, reservation1, reservation2);
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.PutAsJsonAsync($"/api/sessions/{session.Id}", new
+        HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{session.Id}", new
         {
             dateDebut = session.DateDebut,
             dateFin = session.DateFin,
             capacite = 1,
             prix = session.Prix,
             abonnementRequis = session.AbonnementRequis,
+            spaceId = space.Id,
             coachId = session.CoachId
         });
 
@@ -84,21 +90,23 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
 
-        var userId = Guid.NewGuid();
-        var session = new Session(
+        Guid userId = Guid.NewGuid();
+        Space space = CreateActiveSpace("SPACE-DUPLICATE");
+        Session session = new(
             SessionType.CoachingGroupe,
             DateTime.UtcNow.AddDays(2),
             DateTime.UtcNow.AddDays(2).AddHours(1),
             5,
             30m,
-            false);
-        var reservation = new Reservation(userId, session.Id);
+            false,
+            space.Id);
+        Reservation reservation = new(userId, session.Id);
 
-        await _factory.SeedAsync(session, reservation);
-        var client = _factory.CreateClient();
+        await _factory.SeedAsync(space, session, reservation);
+        HttpClient client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(userId));
 
-        var response = await client.PostAsJsonAsync("/api/reservations", new
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
             sessionId = session.Id
         });
@@ -111,20 +119,22 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
 
-        var session = new Session(
+        Space space = CreateActiveSpace("SPACE-FULL");
+        Session session = new(
             SessionType.CoachingGroupe,
             DateTime.UtcNow.AddDays(2),
             DateTime.UtcNow.AddDays(2).AddHours(1),
             1,
             30m,
-            false);
-        var reservation = new Reservation(Guid.NewGuid(), session.Id);
+            false,
+            space.Id);
+        Reservation reservation = new(Guid.NewGuid(), session.Id);
 
-        await _factory.SeedAsync(session, reservation);
-        var client = _factory.CreateClient();
+        await _factory.SeedAsync(space, session, reservation);
+        HttpClient client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
 
-        var response = await client.PostAsJsonAsync("/api/reservations", new
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
             sessionId = session.Id
         });
@@ -137,19 +147,21 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
 
-        var session = new Session(
+        Space space = CreateActiveSpace("SPACE-PAST");
+        Session session = new(
             SessionType.CoachingGroupe,
             DateTime.UtcNow.AddHours(-3),
             DateTime.UtcNow.AddHours(-2),
             5,
             30m,
-            false);
+            false,
+            space.Id);
 
-        await _factory.SeedAsync(session);
-        var client = _factory.CreateClient();
+        await _factory.SeedAsync(space, session);
+        HttpClient client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
 
-        var response = await client.PostAsJsonAsync("/api/reservations", new
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
             sessionId = session.Id
         });
@@ -162,14 +174,15 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
 
-        var activity1 = new ActivitySportive("Yoga", "Flow");
-        var activity2 = new ActivitySportive("Boxe", "Combat");
-        var coach = new Coach("Coach A", "coach@test.local", activity1.Id);
+        ActivitySportive activity1 = new("Yoga", "Flow");
+        ActivitySportive activity2 = new("Boxe", "Combat");
+        Coach coach = new("Coach A", "coach@test.local", activity1.Id);
+        Space space = CreateActiveSpace("SPACE-COACH");
 
-        await _factory.SeedAsync(activity1, activity2, coach);
-        var client = _factory.CreateClient();
+        await _factory.SeedAsync(activity1, activity2, coach, space);
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/api/sessions", new
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
             type = (int)SessionType.CoachingGroupe,
             dateDebut = DateTime.UtcNow.AddDays(4),
@@ -177,6 +190,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 10,
             prix = 20m,
             abonnementRequis = false,
+            spaceId = space.Id,
             activityId = activity2.Id,
             coachId = coach.Id,
             eventId = (Guid?)null
@@ -189,26 +203,81 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     public async Task UpdateUnknownSession_Returns404()
     {
         await _factory.ResetDatabaseAsync();
-        var client = _factory.CreateClient();
+        Space space = CreateActiveSpace("SPACE-UNKNOWN");
+        await _factory.SeedAsync(space);
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.PutAsJsonAsync($"/api/sessions/{Guid.NewGuid()}", new
+        HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{Guid.NewGuid()}", new
         {
             dateDebut = DateTime.UtcNow.AddDays(3),
             dateFin = DateTime.UtcNow.AddDays(3).AddHours(1),
             capacite = 5,
             prix = 15m,
             abonnementRequis = false,
+            spaceId = space.Id,
             coachId = (Guid?)null
         });
 
         await AssertErrorAsync(response, HttpStatusCode.NotFound, "session_not_found");
     }
 
+    [Fact]
+    public async Task GetCalendar_ReturnsCurrentUserSchedule()
+    {
+        await _factory.ResetDatabaseAsync();
+
+        Guid currentUserId = Guid.NewGuid();
+        ActivitySportive activity = new("Pilates", "Core training");
+        Space space = CreateActiveSpace("SPACE-CALENDAR", "Pilates Room");
+        Session session = new(
+            SessionType.CoachingGroupe,
+            DateTime.UtcNow.AddDays(6),
+            DateTime.UtcNow.AddDays(6).AddHours(1),
+            10,
+            22m,
+            false,
+            space.Id,
+            activity.Id);
+        Reservation currentUserReservation = new(currentUserId, session.Id);
+        Reservation otherUserReservation = new(Guid.NewGuid(), session.Id);
+
+        await _factory.SeedAsync(activity, space, session, currentUserReservation, otherUserReservation);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(currentUserId));
+
+        HttpResponseMessage response = await client.GetAsync("/api/calendar");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        List<CalendarItemResponse>? payload = await response.Content.ReadFromJsonAsync<List<CalendarItemResponse>>(_jsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.Single(payload!);
+        Assert.Equal(session.Id, payload[0].SessionId);
+        Assert.Equal("Pilates", payload[0].ActivityName);
+        Assert.Equal("Pilates Room", payload[0].SpaceName);
+        Assert.Equal(session.DateDebut, payload[0].DateDebut);
+        Assert.Equal(session.DateFin, payload[0].DateFin);
+        Assert.Equal(SessionType.CoachingGroupe, payload[0].Type);
+    }
+
+    private static Space CreateActiveSpace(string code, string? name = null)
+    {
+        return new Space(
+            name ?? code,
+            code,
+            "Test space",
+            SpaceType.MultiPurposeRoom,
+            50,
+            false,
+            true);
+    }
+
     private async Task AssertErrorAsync(HttpResponseMessage response, HttpStatusCode expectedStatusCode, string expectedError)
     {
         Assert.Equal(expectedStatusCode, response.StatusCode);
 
-        var payload = await response.Content.ReadFromJsonAsync<ErrorResponse>(_jsonOptions);
+        ErrorResponse? payload = await response.Content.ReadFromJsonAsync<ErrorResponse>(_jsonOptions);
 
         Assert.NotNull(payload);
         Assert.Equal((int)expectedStatusCode, payload!.StatusCode);
@@ -218,15 +287,15 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
     private static string CreateJwt(Guid userId, string role = "User")
     {
-        var claims = new[]
-        {
+        Claim[] claims =
+        [
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Role, role)
-        };
+        ];
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(
+        SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(JwtKey));
+        SigningCredentials credentials = new(key, SecurityAlgorithms.HmacSha256);
+        JwtSecurityToken token = new(
             issuer: JwtIssuer,
             audience: JwtAudience,
             claims: claims,
@@ -242,5 +311,15 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         public int StatusCode { get; set; }
         public string Error { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+    }
+
+    private sealed class CalendarItemResponse
+    {
+        public Guid SessionId { get; set; }
+        public string ActivityName { get; set; } = string.Empty;
+        public string SpaceName { get; set; } = string.Empty;
+        public DateTime DateDebut { get; set; }
+        public DateTime DateFin { get; set; }
+        public SessionType Type { get; set; }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Training.Application.Sessions.DTOs
+﻿namespace Training.Application.Sessions.DTOs
 {
     public class UpdateSessionRequest
     {
@@ -13,6 +7,7 @@ namespace Training.Application.Sessions.DTOs
         public int? Capacite { get; set; }
         public decimal? Prix { get; set; }
         public bool AbonnementRequis { get; set; }
+        public Guid SpaceId { get; set; }
         public Guid? CoachId { get; set; }
     }
 }

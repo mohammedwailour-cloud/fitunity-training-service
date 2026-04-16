@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Training.Contracts", "Train
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Training.Tests", "Training.Tests\Training.Tests.csproj", "{6320524D-7D08-4EC5-83E5-30A1FBFA494E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JwtGenerator", "JwtGenerator\JwtGenerator.csproj", "{99BEF164-A64A-F5C8-F0D4-15D4D46170AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{6320524D-7D08-4EC5-83E5-30A1FBFA494E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6320524D-7D08-4EC5-83E5-30A1FBFA494E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6320524D-7D08-4EC5-83E5-30A1FBFA494E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99BEF164-A64A-F5C8-F0D4-15D4D46170AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99BEF164-A64A-F5C8-F0D4-15D4D46170AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99BEF164-A64A-F5C8-F0D4-15D4D46170AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99BEF164-A64A-F5C8-F0D4-15D4D46170AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,6 +10,8 @@ using Training.Api.Security;
 using Training.Application.Activities.Interfaces;
 using Training.Application.Activities.UseCases;
 using Training.Application.Activities.UseCases.Training.Application.Activities.UseCases;
+using Training.Application.Calendar.Interfaces;
+using Training.Application.Calendar.UseCases;
 using Training.Application.Coachs.Interfaces;
 using Training.Application.Coachs.UseCases;
 using Training.Application.Common.Interfaces;
@@ -18,12 +20,14 @@ using Training.Application.Events.UseCases;
 using Training.Application.Reservations.Interfaces;
 using Training.Application.Sessions.Interfaces;
 using Training.Application.Sessions.UseCases;
+using Training.Application.Spaces.Interfaces;
+using Training.Application.Spaces.UseCases;
 using Training.Infrastructure.Events;
 using Training.Infrastructure.Persistence;
 using Training.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+JwtOptions jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi(options =>
@@ -46,9 +50,9 @@ builder.Services.AddOpenApi(options =>
 
     options.AddOperationTransformer((operation, context, _) =>
     {
-        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-        var isAnonymous = metadata.OfType<IAllowAnonymous>().Any();
-        var requiresAuthorization = metadata.OfType<IAuthorizeData>().Any();
+        IReadOnlyList<object> metadata = context.Description.ActionDescriptor.EndpointMetadata.ToList().AsReadOnly();
+        bool isAnonymous = metadata.OfType<IAllowAnonymous>().Any();
+        bool requiresAuthorization = metadata.OfType<IAuthorizeData>().Any();
 
         if (isAnonymous || !requiresAuthorization)
         {
@@ -108,6 +112,8 @@ builder.Services.AddScoped<GetReservationsByUserUseCase>();
 builder.Services.AddScoped<GetSessionsPagedUseCase>();
 builder.Services.AddScoped<GetReservationsPagedUseCase>();
 builder.Services.AddScoped<GetReservationsBySessionUseCase>();
+builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
+builder.Services.AddScoped<GetUserCalendarUseCase>();
 
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 
@@ -135,6 +141,13 @@ builder.Services.AddScoped<GetEventsUseCase>();
 builder.Services.AddScoped<UpdateEventUseCase>();
 builder.Services.AddScoped<DeleteEventUseCase>();
 
+builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
+builder.Services.AddScoped<CreateSpaceUseCase>();
+builder.Services.AddScoped<UpdateSpaceUseCase>();
+builder.Services.AddScoped<GetSpaceByIdUseCase>();
+builder.Services.AddScoped<GetSpacesUseCase>();
+builder.Services.AddScoped<DeleteSpaceUseCase>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -144,13 +157,34 @@ if (app.Environment.IsDevelopment())
     {
         options.AddPreferredSecuritySchemes(["Bearer"]);
     });
+
+    app.MapGet("/debug/auth/claims", (HttpContext httpContext, IUserContext userContext) =>
+    {
+        IEnumerable<object> claims = httpContext.User.Claims
+            .Select(claim => new
+            {
+                claim.Type,
+                claim.Value
+            });
+
+        return Results.Ok(new
+        {
+            isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false,
+            authenticationType = httpContext.User.Identity?.AuthenticationType,
+            userId = userContext.UserId,
+            role = userContext.Role,
+            claims
+        });
+    })
+    .RequireAuthorization()
+    .WithName("GetCurrentUserClaims");
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
@@ -159,5 +193,3 @@ app.Run();
 public partial class Program
 {
 }
-
-

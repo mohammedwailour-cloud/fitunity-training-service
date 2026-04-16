@@ -17,6 +17,9 @@ public class SessionResponse
     public decimal? Prix { get; set; }
 
     public bool AbonnementRequis { get; set; }
+    public Guid SpaceId { get; set; }
+    public string SpaceName { get; set; } = string.Empty;
+    public SpaceType SpaceType { get; set; }
     public Guid? ActivityId { get; set; }
 
     public Guid? CoachId { get; set; }

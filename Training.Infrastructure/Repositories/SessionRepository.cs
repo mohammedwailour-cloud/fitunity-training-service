@@ -23,9 +23,23 @@ public class SessionRepository : ISessionRepository
     {
         return await _context.Sessions
             .Include(s => s.Reservations)
+            .Include(s => s.Space)
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Session>> GetByIdsAsync(IEnumerable<Guid> sessionIds)
+    {
+        List<Guid> sessionIdList = sessionIds.Distinct().ToList();
+
+        if (sessionIdList.Count == 0)
+        {
+            return Array.Empty<Session>();
+        }
+
+        return await _context.Sessions
+            .Where(session => sessionIdList.Contains(session.Id))
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Session session)
     {
@@ -38,23 +52,40 @@ public class SessionRepository : ISessionRepository
         _context.Sessions.Update(session);
         await _context.SaveChangesAsync();
     }
+
     public async Task<(IEnumerable<Session>, int totalCount)> GetPagedAsync(int page, int pageSize)
     {
-        var totalCount = await _context.Sessions.CountAsync();
+        int totalCount = await _context.Sessions.CountAsync();
 
-        var skip = (page - 1) * pageSize;
+        int skip = (page - 1) * pageSize;
 
-        var sessions = await _context.Sessions
-            .OrderBy(s => s.DateDebut)
+        List<Session> sessions = await _context.Sessions
+            .Include(s => s.Space)
+            .OrderBy(session => session.DateDebut)
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync();
 
         return (sessions, totalCount);
     }
+
+    public async Task<bool> IsSpaceAvailableAsync(Guid spaceId, DateTime start, DateTime end, Guid? excludedSessionId = null)
+    {
+        IQueryable<Session> query = _context.Sessions.Where(session => session.SpaceId == spaceId);
+
+        if (excludedSessionId.HasValue)
+        {
+            query = query.Where(session => session.Id != excludedSessionId.Value);
+        }
+
+        bool conflictExists = await query.AnyAsync(session => session.DateDebut < end && session.DateFin > start);
+
+        return !conflictExists;
+    }
+
     public async Task DeleteAsync(Guid id)
     {
-        var session = await _context.Sessions.FindAsync(id);
+        Session? session = await _context.Sessions.FindAsync(id);
 
         if (session != null)
         {

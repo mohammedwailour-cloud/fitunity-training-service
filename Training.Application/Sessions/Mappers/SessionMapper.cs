@@ -14,13 +14,14 @@ public static class SessionMapper
             dto.Capacite,
             dto.Prix,
             dto.AbonnementRequis,
+            dto.SpaceId,
             dto.ActivityId,
             dto.CoachId,
             dto.EventId
         );
     }
 
-    public static SessionResponse ToResponse(Session session)
+    public static SessionResponse ToResponse(Session session, Space? space = null)
     {
         return new SessionResponse
         {
@@ -31,6 +32,9 @@ public static class SessionMapper
             Capacite = session.Capacite,
             Prix = session.Prix,
             AbonnementRequis = session.AbonnementRequis,
+            SpaceId = session.SpaceId,
+            SpaceName = space?.Name ?? string.Empty,
+            SpaceType = space?.Type ?? default,
             ActivityId = session.ActivityId,
             CoachId = session.CoachId,
             EventId = session.EventId
