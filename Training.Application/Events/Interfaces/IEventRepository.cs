@@ -8,5 +8,6 @@ public interface IEventRepository
     Task<List<Event>> GetAllAsync(int page, int pageSize);
     Task AddAsync(Event ev);
     Task UpdateAsync(Event ev);
+    Task<bool> IsSpaceAvailableAsync(Guid spaceId, DateTime start, DateTime end, Guid? excludedEventId = null);
     Task DeleteAsync(Guid id);
 }

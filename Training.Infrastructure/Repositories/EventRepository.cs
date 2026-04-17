@@ -23,13 +23,15 @@ namespace Training.Infrastructure.Repositories
         public async Task<Event?> GetByIdAsync(Guid id)
         {
             return await _context.Events
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .Include(ev => ev.Space)
+                .FirstOrDefaultAsync(ev => ev.Id == id);
         }
 
         public async Task<List<Event>> GetAllAsync(int page, int pageSize)
         {
             return await _context.Events
-                .OrderBy(e => e.Date)
+                .Include(ev => ev.Space)
+                .OrderBy(ev => ev.DateDebut)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -41,15 +43,24 @@ namespace Training.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> IsSpaceAvailableAsync(Guid spaceId, DateTime start, DateTime end, Guid? excludedEventId = null)
+        {
+            IQueryable<Event> query = _context.Events.Where(ev => ev.SpaceId == spaceId);
+
+            if (excludedEventId.HasValue)
+            {
+                query = query.Where(ev => ev.Id != excludedEventId.Value);
+            }
+
+            bool conflictExists = await query.AnyAsync(ev => ev.DateDebut < end && ev.DateFin > start);
+
+            return !conflictExists;
+        }
+
         public async Task DeleteAsync(Guid id)
         {
-            var ev = await _context.Events.FindAsync(id);
-
-            if (ev == null)
-                throw new KeyNotFoundException("Event not found");
-
-            _context.Events.Remove(ev);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask;
+            throw new NotSupportedException("Physical delete is not allowed. Use soft delete strategy.");
         }
     }
 }

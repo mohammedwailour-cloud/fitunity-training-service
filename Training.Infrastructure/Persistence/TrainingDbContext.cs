@@ -105,11 +105,22 @@ namespace Training.Infrastructure.Persistence
                 entity.Property(e => e.Description)
                       .HasMaxLength(1000);
 
-                entity.Property(e => e.Date)
+                entity.Property(e => e.DateDebut)
+                      .IsRequired();
+
+                entity.Property(e => e.DateFin)
                       .IsRequired();
 
                 entity.Property(e => e.Capacite)
                       .IsRequired();
+
+                entity.Property(e => e.SpaceId)
+                      .IsRequired();
+
+                entity.HasOne(e => e.Space)
+                      .WithMany()
+                      .HasForeignKey(e => e.SpaceId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasMany(e => e.Sessions)
                       .WithOne(s => s.Event)
@@ -142,7 +153,7 @@ namespace Training.Infrastructure.Persistence
                 entity.Property(s => s.SpaceId)
                       .IsRequired();
 
-                entity.HasOne<Space>()
+                entity.HasOne(s => s.Space)
                       .WithMany()
                       .HasForeignKey(s => s.SpaceId)
                       .OnDelete(DeleteBehavior.Restrict);

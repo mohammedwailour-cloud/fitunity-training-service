@@ -10,4 +10,10 @@ public interface ISpaceRepository
     Task DeleteAsync(Guid id);
     Task<(IEnumerable<Space> Items, int TotalCount)> GetPagedAsync(int page, int pageSize);
     Task<bool> IsCodeUniqueAsync(string code, Guid? excludedSpaceId = null);
+    Task<bool> IsSpaceAvailableAsync(
+        Guid spaceId,
+        DateTime start,
+        DateTime end,
+        Guid? excludedSessionId = null,
+        Guid? excludedEventId = null);
 }

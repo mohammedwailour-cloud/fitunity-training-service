@@ -49,11 +49,12 @@ namespace Training.Application.Sessions.UseCases
             if (space.Capacity.HasValue && request.Capacite.HasValue && request.Capacite.Value > space.Capacity.Value)
                 throw new InvalidSessionCapacityException();
 
-            bool available = await _sessionRepository.IsSpaceAvailableAsync(
+            bool available = await _spaceRepository.IsSpaceAvailableAsync(
                 request.SpaceId,
                 request.DateDebut,
                 request.DateFin,
-                session.Id);
+                excludedSessionId: session.Id,
+                excludedEventId: null);
 
             if (!available)
                 throw new SpaceUnavailableException();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 using Training.Application.Spaces.Interfaces;
 using Training.Domain.Entities;
 using Training.Infrastructure.Persistence;
@@ -34,14 +35,15 @@ public class SpaceRepository : ISpaceRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        Space? space = await _context.Spaces.FindAsync(id);
+        await Task.CompletedTask;
+        throw new NotSupportedException("Physical delete is not allowed. Use soft delete (IsActive).");
 
-        if (space != null)
-        {
-            _context.Spaces.Remove(space);
-            await _context.SaveChangesAsync();
-        }
+        // Pas de suppression réelle
+        // historique conservé
+        // cohérence avec Session / Event
+        // Evite bugs futurs
     }
+    
 
     public async Task<(IEnumerable<Space> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
     {
@@ -59,7 +61,7 @@ public class SpaceRepository : ISpaceRepository
     public async Task<bool> IsCodeUniqueAsync(string code, Guid? excludedSpaceId = null)
     {
         string normalizedCode = code.Trim().ToUpper();
-        IQueryable<Space> query = _context.Spaces.Where(space => space.Code == normalizedCode);
+        IQueryable<Space> query = _context.Spaces.Where(space => space.Code == normalizedCode && space.IsActive == true);
 
         if (excludedSpaceId.HasValue)
         {
@@ -67,5 +69,38 @@ public class SpaceRepository : ISpaceRepository
         }
 
         return !await query.AnyAsync();
+    }
+
+    public async Task<bool> IsSpaceAvailableAsync(
+        Guid spaceId,
+        DateTime start,
+        DateTime end,
+        Guid? excludedSessionId = null,
+        Guid? excludedEventId = null)
+    {
+        IQueryable<Session> sessionQuery = _context.Sessions.Where(session => session.SpaceId == spaceId);
+
+        if (excludedSessionId.HasValue)
+        {
+            sessionQuery = sessionQuery.Where(session => session.Id != excludedSessionId.Value);
+        }
+
+        bool sessionConflictExists = await sessionQuery.AnyAsync(session => session.DateDebut < end && session.DateFin > start);
+
+        if (sessionConflictExists)
+        {
+            return false;
+        }
+
+        IQueryable<Event> eventQuery = _context.Events.Where(ev => ev.SpaceId == spaceId);
+
+        if (excludedEventId.HasValue)
+        {
+            eventQuery = eventQuery.Where(ev => ev.Id != excludedEventId.Value);
+        }
+
+        bool eventConflictExists = await eventQuery.AnyAsync(ev => ev.DateDebut < end && ev.DateFin > start);
+
+        return !eventConflictExists;
     }
 }
