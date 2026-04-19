@@ -23,7 +23,10 @@ public class Event
         if (string.IsNullOrWhiteSpace(titre))
             throw new InvalidEventTitleException();
 
-        if (dateDebut < DateTime.UtcNow || dateFin <= dateDebut)
+        if (dateDebut < DateTime.UtcNow)
+            throw new InvalidEventDatesException();
+
+        if (dateFin <= dateDebut)
             throw new InvalidEventDatesException();
 
         if (capacite <= 0)
@@ -46,7 +49,10 @@ public class Event
         if (string.IsNullOrWhiteSpace(titre))
             throw new InvalidEventTitleException();
 
-        if (dateDebut < DateTime.UtcNow || dateFin <= dateDebut)
+        if (dateDebut < DateTime.UtcNow)
+            throw new InvalidEventDatesException();
+
+        if (dateFin <= dateDebut)
             throw new InvalidEventDatesException();
 
         if (capacite <= 0)

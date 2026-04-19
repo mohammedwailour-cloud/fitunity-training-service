@@ -1,5 +1,6 @@
 ﻿using Training.Application.Common.Interfaces;
 using Training.Application.Coachs.Interfaces;
+using Training.Application.Events.Interfaces;
 using Training.Application.Exceptions;
 using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.Interfaces;
@@ -15,17 +16,20 @@ namespace Training.Application.Sessions.UseCases
     {
         private readonly ISessionRepository _sessionRepository;
         private readonly ICoachRepository _coachRepository;
+        private readonly IEventRepository _eventRepository;
         private readonly ISpaceRepository _spaceRepository;
         private readonly IEventPublisher _eventPublisher;
 
         public CreateSessionUseCase(
             ISessionRepository sessionRepository,
             ICoachRepository coachRepository,
+            IEventRepository eventRepository,
             ISpaceRepository spaceRepository,
             IEventPublisher eventPublisher)
         {
             _sessionRepository = sessionRepository;
             _coachRepository = coachRepository;
+            _eventRepository = eventRepository;
             _spaceRepository = spaceRepository;
             _eventPublisher = eventPublisher;
         }
@@ -42,6 +46,14 @@ namespace Training.Application.Sessions.UseCases
 
             if (!space.IsActive)
                 throw new SpaceInactiveException();
+
+            if (request.EventId.HasValue)
+            {
+                Event? ev = await _eventRepository.GetByIdAsync(request.EventId.Value);
+
+                if (ev != null && ev.SpaceId != request.SpaceId)
+                    throw new InvalidEventSpaceException();
+            }
 
             if (space.Capacity.HasValue && !request.Capacite.HasValue)
                 throw new InvalidSessionCapacityException();

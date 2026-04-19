@@ -47,7 +47,7 @@ public class SpaceRepository : ISpaceRepository
 
     public async Task<(IEnumerable<Space> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
     {
-        IQueryable<Space> query = _context.Spaces.AsQueryable();
+        IQueryable<Space> query = _context.Spaces.Where(space => space.IsActive);
         int totalCount = await query.CountAsync();
         List<Space> items = await query
             .OrderBy(space => space.Name)
