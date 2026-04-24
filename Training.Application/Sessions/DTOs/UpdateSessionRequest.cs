@@ -7,7 +7,9 @@
         public int? Capacite { get; set; }
         public decimal? Prix { get; set; }
         public bool AbonnementRequis { get; set; }
+        public bool IsOpenSession { get; set; }
         public Guid SpaceId { get; set; }
+        public Guid? ActivityId { get; set; }
         public Guid? CoachId { get; set; }
     }
 }

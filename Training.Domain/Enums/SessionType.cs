@@ -8,9 +8,9 @@ namespace Training.Domain.Enums
 {
     public enum SessionType
     {
-        ActiviteLibre,
         CoachingIndividuel,
         CoachingGroupe,
-        Evenement
+        Evenement,
+        Open
     }
 }

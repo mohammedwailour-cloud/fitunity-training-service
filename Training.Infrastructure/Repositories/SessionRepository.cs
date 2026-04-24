@@ -16,6 +16,8 @@ public class SessionRepository : ISessionRepository
     {
         return await _context.Sessions
             .Include(s => s.Reservations)
+            .Include(s => s.Space)
+            .Include(s => s.Activity)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -24,6 +26,7 @@ public class SessionRepository : ISessionRepository
         return await _context.Sessions
             .Include(s => s.Reservations)
             .Include(s => s.Space)
+            .Include(s => s.Activity)
             .ToListAsync();
     }
 
@@ -61,6 +64,7 @@ public class SessionRepository : ISessionRepository
 
         List<Session> sessions = await _context.Sessions
             .Include(s => s.Space)
+            .Include(s => s.Activity)
             .OrderBy(session => session.DateDebut)
             .Skip(skip)
             .Take(pageSize)
@@ -85,12 +89,7 @@ public class SessionRepository : ISessionRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        Session? session = await _context.Sessions.FindAsync(id);
-
-        if (session != null)
-        {
-            _context.Sessions.Remove(session);
-            await _context.SaveChangesAsync();
-        }
+        await Task.CompletedTask;
+        throw new NotSupportedException("Physical delete is not allowed.");
     }
 }

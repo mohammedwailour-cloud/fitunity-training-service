@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Training.Application.Common.Interfaces;
+using Training.Application.Common.Security;
 using Training.Application.Exceptions;
 
 namespace Training.Api.Security;
@@ -20,14 +20,14 @@ public class JwtUserContext : IUserContext
     {
         get
         {
-            var claimValue = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? claimValue = GetClaimValue(JwtClaimNames.UserId);
 
-            if (Guid.TryParse(claimValue, out var userId))
+            if (Guid.TryParse(claimValue, out Guid userId))
             {
                 return userId;
             }
 
-            if (_jwtOptions.EnableDevelopmentFallback && Guid.TryParse(_jwtOptions.DefaultUserId, out var defaultUserId))
+            if (_jwtOptions.EnableDevelopmentFallback && Guid.TryParse(_jwtOptions.DefaultUserId, out Guid defaultUserId))
             {
                 return defaultUserId;
             }
@@ -36,18 +36,26 @@ public class JwtUserContext : IUserContext
         }
     }
 
-    public string? Role
+    public string Role
     {
         get
         {
-            var role = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
+            string? role = GetClaimValue(JwtClaimNames.Role);
 
             if (!string.IsNullOrWhiteSpace(role))
             {
-                return role;
+                string normalized = role.ToUpperInvariant();
+
+                return normalized switch
+                {
+                    "ADMIN" => "Admin",
+                    "COACH" => "Coach",
+                    "CLIENT" => "User",
+                    _ => throw new UserContextUnavailableException()
+                };
             }
 
-            if (_jwtOptions.EnableDevelopmentFallback)
+            if (_jwtOptions.EnableDevelopmentFallback && !string.IsNullOrWhiteSpace(_jwtOptions.DefaultRole))
             {
                 return _jwtOptions.DefaultRole;
             }
@@ -56,5 +64,31 @@ public class JwtUserContext : IUserContext
         }
     }
 
-    public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+    public bool HasActiveSubscription
+    {
+        get
+        {
+            string? subscription = GetClaimValue(JwtClaimNames.Subscription);
+
+            if (!string.IsNullOrWhiteSpace(subscription))
+            {
+                return string.Equals(subscription, JwtClaimValues.ActiveSubscription, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (_jwtOptions.EnableDevelopmentFallback)
+            {
+                return string.Equals(_jwtOptions.DefaultSubscriptionStatus, JwtClaimValues.ActiveSubscription, StringComparison.OrdinalIgnoreCase);
+            }
+
+            throw new UserContextUnavailableException();
+        }
+    }
+
+    private string? GetClaimValue(string claimName)
+    {
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        string? claimValue = httpContext?.User?.FindFirst(claimName)?.Value;
+
+        return string.IsNullOrWhiteSpace(claimValue) ? null : claimValue;
+    }
 }

@@ -17,12 +17,12 @@ public class SessionResponse
     public decimal? Prix { get; set; }
 
     public bool AbonnementRequis { get; set; }
+    public bool IsOpenSession { get; set; }
     public Guid SpaceId { get; set; }
     public string SpaceName { get; set; } = string.Empty;
     public SpaceType SpaceType { get; set; }
     public Guid? ActivityId { get; set; }
-
+    public string ActivityName { get; set; } = string.Empty;
     public Guid? CoachId { get; set; }
-
     public Guid? EventId { get; set; }
 }

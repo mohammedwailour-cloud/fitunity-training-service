@@ -15,6 +15,7 @@ using Training.Application.Calendar.UseCases;
 using Training.Application.Coachs.Interfaces;
 using Training.Application.Coachs.UseCases;
 using Training.Application.Common.Interfaces;
+using Training.Application.Common.Security;
 using Training.Application.Events.Interfaces;
 using Training.Application.Events.UseCases;
 using Training.Application.Reservations.Interfaces;
@@ -81,6 +82,7 @@ builder.Services.AddScoped<IUserContext, JwtUserContext>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -90,6 +92,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwtOptions.Issuer,
             ValidAudience = jwtOptions.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            NameClaimType = JwtClaimNames.UserId,
+            RoleClaimType = JwtClaimNames.Role,
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -173,6 +177,7 @@ if (app.Environment.IsDevelopment())
             authenticationType = httpContext.User.Identity?.AuthenticationType,
             userId = userContext.UserId,
             role = userContext.Role,
+            hasActiveSubscription = userContext.HasActiveSubscription,
             claims
         });
     })

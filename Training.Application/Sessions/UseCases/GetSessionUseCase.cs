@@ -2,7 +2,6 @@
 using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.Interfaces;
 using Training.Application.Sessions.Mappers;
-using Training.Application.Spaces.Interfaces;
 using Training.Domain.Entities;
 
 namespace Training.Application.Sessions.UseCases;
@@ -10,12 +9,10 @@ namespace Training.Application.Sessions.UseCases;
 public class GetSessionUseCase
 {
     private readonly ISessionRepository _sessionRepository;
-    private readonly ISpaceRepository _spaceRepository;
 
-    public GetSessionUseCase(ISessionRepository sessionRepository, ISpaceRepository spaceRepository)
+    public GetSessionUseCase(ISessionRepository sessionRepository)
     {
         _sessionRepository = sessionRepository;
-        _spaceRepository = spaceRepository;
     }
 
     public async Task<SessionResponse?> Execute(Guid id)
@@ -25,11 +22,9 @@ public class GetSessionUseCase
         if (session == null)
             return null;
 
-        Space? space = await _spaceRepository.GetByIdAsync(session.SpaceId);
-
-        if (space == null)
+        if (session.Space == null)
             throw new SpaceNotFoundException(session.SpaceId);
 
-        return SessionMapper.ToResponse(session, space);
+        return SessionMapper.ToResponse(session, session.Space);
     }
 }

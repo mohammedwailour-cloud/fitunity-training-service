@@ -17,7 +17,8 @@ public static class SessionMapper
             dto.SpaceId,
             dto.ActivityId,
             dto.CoachId,
-            dto.EventId
+            dto.EventId,
+            dto.IsOpenSession
         );
     }
 
@@ -32,10 +33,12 @@ public static class SessionMapper
             Capacite = session.Capacite,
             Prix = session.Prix,
             AbonnementRequis = session.AbonnementRequis,
+            IsOpenSession = session.IsOpenSession,
             SpaceId = session.SpaceId,
-            SpaceName = space?.Name ?? string.Empty,
-            SpaceType = space?.Type ?? default,
+            SpaceName = space?.Name ?? session.Space?.Name ?? string.Empty,
+            SpaceType = space?.Type ?? session.Space?.Type ?? default,
             ActivityId = session.ActivityId,
+            ActivityName = session.Activity?.Nom ?? string.Empty,
             CoachId = session.CoachId,
             EventId = session.EventId
         };

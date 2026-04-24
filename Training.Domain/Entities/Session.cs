@@ -16,6 +16,7 @@ public class Session
     public decimal? Prix { get; private set; }
 
     public bool AbonnementRequis { get; private set; }
+    public bool IsOpenSession { get; private set; }
 
     public Guid SpaceId { get; private set; }
     public Space? Space { get; private set; }
@@ -44,7 +45,8 @@ public class Session
         Guid spaceId,
         Guid? activityId = null,
         Guid? coachId = null,
-        Guid? eventId = null)
+        Guid? eventId = null,
+        bool isOpenSession = false)
     {
         if (dateFin <= dateDebut)
             throw new InvalidSessionDatesException();
@@ -58,6 +60,12 @@ public class Session
         if (spaceId == Guid.Empty)
             throw new InvalidSessionSpaceException();
 
+        if (isOpenSession && type != SessionType.Open)
+            throw new InvalidOpenSessionException();
+
+        if (isOpenSession && (coachId.HasValue || !activityId.HasValue || spaceId == Guid.Empty))
+            throw new InvalidOpenSessionException();
+
         Id = Guid.NewGuid();
         Type = type;
         DateDebut = dateDebut;
@@ -65,6 +73,7 @@ public class Session
         Capacite = capacite;
         Prix = prix;
         AbonnementRequis = abonnementRequis;
+        IsOpenSession = isOpenSession;
         SpaceId = spaceId;
         ActivityId = activityId;
         CoachId = coachId;
@@ -72,13 +81,16 @@ public class Session
     }
 
     public void Update(
+        SessionType type,
         DateTime dateDebut,
         DateTime dateFin,
         int? capacite,
         decimal? prix,
         bool abonnementRequis,
         Guid spaceId,
-        Guid? coachId)
+        Guid? activityId,
+        Guid? coachId,
+        bool isOpenSession)
     {
         if (IsInPast())
             throw new InvalidSessionStateException();
@@ -95,15 +107,24 @@ public class Session
         if (spaceId == Guid.Empty)
             throw new InvalidSessionSpaceException();
 
+        if (isOpenSession && type != SessionType.Open)
+            throw new InvalidOpenSessionException();
+
+        if (isOpenSession && (coachId.HasValue || !activityId.HasValue || spaceId == Guid.Empty))
+            throw new InvalidOpenSessionException();
+
         if (capacite.HasValue && capacite.Value < _reservations.Count)
             throw new SessionCapacityConflictException();
 
+        Type = type;
         DateDebut = dateDebut;
         DateFin = dateFin;
         Capacite = capacite;
         Prix = prix;
         AbonnementRequis = abonnementRequis;
+        IsOpenSession = isOpenSession;
         SpaceId = spaceId;
+        ActivityId = activityId;
         CoachId = coachId;
     }
 

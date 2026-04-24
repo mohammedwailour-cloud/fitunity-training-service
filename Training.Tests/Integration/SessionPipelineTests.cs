@@ -1,11 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
-using Microsoft.IdentityModel.Tokens;
 using Training.Domain.Entities;
 using Training.Domain.Enums;
 using Xunit;
@@ -14,10 +10,6 @@ namespace Training.Tests.Integration;
 
 public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 {
-    private const string JwtIssuer = "Training.Api";
-    private const string JwtAudience = "Training.Client";
-    private const string JwtKey = "TrainingApiDevKey-PleaseReplaceWithAStrongSecret-2026";
-
     private readonly TrainingApiFactory _factory;
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -42,6 +34,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 10,
             prix = 20m,
             abonnementRequis = false,
+            isOpenSession = false,
             spaceId = space.Id,
             activityId = (Guid?)null,
             coachId = (Guid?)null,
@@ -52,11 +45,98 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     }
 
     [Fact]
+    public async Task CreateOpenSession_WithoutCoach_ReturnsOk()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space space = CreateActiveSpace("SPACE-OPEN-OK");
+        ActivitySportive activity = new("Musculation", "Libre");
+        await _factory.SeedAsync(space, activity);
+        HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
+        {
+            type = (int)SessionType.Open,
+            dateDebut = DateTime.UtcNow.AddDays(5),
+            dateFin = DateTime.UtcNow.AddDays(5).AddHours(2),
+            capacite = 10,
+            prix = 20m,
+            abonnementRequis = false,
+            isOpenSession = true,
+            spaceId = space.Id,
+            activityId = activity.Id,
+            coachId = (Guid?)null,
+            eventId = (Guid?)null
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        SessionResponse? payload = await response.Content.ReadFromJsonAsync<SessionResponse>(_jsonOptions);
+        Assert.NotNull(payload);
+        Assert.True(payload!.IsOpenSession);
+        Assert.Equal("Musculation", payload.ActivityName);
+        Assert.Equal(space.Name, payload.SpaceName);
+    }
+
+    [Fact]
+    public async Task CreateOpenSession_WithCoach_ReturnsFail()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space space = CreateActiveSpace("SPACE-OPEN-COACH");
+        ActivitySportive activity = new("Musculation", "Libre");
+        Coach coach = new("Coach A", "coach@test.local", activity.Id);
+        await _factory.SeedAsync(space, activity, coach);
+        HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
+        {
+            type = (int)SessionType.Open,
+            dateDebut = DateTime.UtcNow.AddDays(5),
+            dateFin = DateTime.UtcNow.AddDays(5).AddHours(2),
+            capacite = 10,
+            prix = 20m,
+            abonnementRequis = false,
+            isOpenSession = true,
+            spaceId = space.Id,
+            activityId = activity.Id,
+            coachId = coach.Id,
+            eventId = (Guid?)null
+        });
+
+        await AssertErrorAsync(response, HttpStatusCode.BadRequest, "invalid_open_session");
+    }
+
+    [Fact]
+    public async Task CreateOpenSession_WithoutActivity_ReturnsFail()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space space = CreateActiveSpace("SPACE-OPEN-NO-ACTIVITY");
+        await _factory.SeedAsync(space);
+        HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
+        {
+            type = (int)SessionType.Open,
+            dateDebut = DateTime.UtcNow.AddDays(5),
+            dateFin = DateTime.UtcNow.AddDays(5).AddHours(2),
+            capacite = 10,
+            prix = 20m,
+            abonnementRequis = false,
+            isOpenSession = true,
+            spaceId = space.Id,
+            activityId = (Guid?)null,
+            coachId = (Guid?)null,
+            eventId = (Guid?)null
+        });
+
+        await AssertErrorAsync(response, HttpStatusCode.BadRequest, "invalid_open_session");
+    }
+
+    [Fact]
     public async Task UpdateSession_WithCapacityConflict_Returns409()
     {
         await _factory.ResetDatabaseAsync();
 
         Space space = CreateActiveSpace("SPACE-CAPACITY");
+        ActivitySportive activity = new("Yoga", "Flow");
         Session session = new(
             SessionType.CoachingGroupe,
             DateTime.UtcNow.AddDays(3),
@@ -64,11 +144,12 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             3,
             25m,
             false,
-            space.Id);
+            space.Id,
+            activity.Id);
         Reservation reservation1 = new(Guid.NewGuid(), session.Id);
         Reservation reservation2 = new(Guid.NewGuid(), session.Id);
 
-        await _factory.SeedAsync(space, session, reservation1, reservation2);
+        await _factory.SeedAsync(space, activity, session, reservation1, reservation2);
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{session.Id}", new
@@ -78,7 +159,9 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 1,
             prix = session.Prix,
             abonnementRequis = session.AbonnementRequis,
+            isOpenSession = false,
             spaceId = space.Id,
+            activityId = activity.Id,
             coachId = session.CoachId
         });
 
@@ -104,7 +187,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, session, reservation);
         HttpClient client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(userId));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(userId));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
@@ -112,6 +195,39 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         });
 
         await AssertErrorAsync(response, HttpStatusCode.Conflict, "duplicate_reservation");
+    }
+
+    [Fact]
+    public async Task ReserveOpenSession_ReturnsOk()
+    {
+        await _factory.ResetDatabaseAsync();
+
+        Guid userId = Guid.NewGuid();
+        Space space = CreateActiveSpace("SPACE-OPEN-RESERVE");
+        ActivitySportive activity = new("Musculation", "Libre");
+        Session session = new(
+            SessionType.Open,
+            DateTime.UtcNow.AddDays(2),
+            DateTime.UtcNow.AddDays(2).AddHours(1),
+            5,
+            30m,
+            false,
+            space.Id,
+            activity.Id,
+            null,
+            null,
+            true);
+
+        await _factory.SeedAsync(space, activity, session);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(userId));
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
+        {
+            sessionId = session.Id
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -132,7 +248,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, session, reservation);
         HttpClient client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid()));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
@@ -159,7 +275,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, session);
         HttpClient client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid()));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid()));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", new
         {
@@ -190,6 +306,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 10,
             prix = 20m,
             abonnementRequis = false,
+            isOpenSession = false,
             spaceId = space.Id,
             activityId = activity2.Id,
             coachId = coach.Id,
@@ -204,7 +321,8 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
         Space space = CreateActiveSpace("SPACE-UNKNOWN");
-        await _factory.SeedAsync(space);
+        ActivitySportive activity = new("Yoga", "Flow");
+        await _factory.SeedAsync(space, activity);
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{Guid.NewGuid()}", new
@@ -214,7 +332,9 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 5,
             prix = 15m,
             abonnementRequis = false,
+            isOpenSession = false,
             spaceId = space.Id,
+            activityId = activity.Id,
             coachId = (Guid?)null
         });
 
@@ -243,7 +363,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(activity, space, session, currentUserReservation, otherUserReservation);
         HttpClient client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CreateJwt(currentUserId));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(currentUserId));
 
         HttpResponseMessage response = await client.GetAsync("/api/calendar");
 
@@ -285,32 +405,19 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         Assert.False(string.IsNullOrWhiteSpace(payload.Message));
     }
 
-    private static string CreateJwt(Guid userId, string role = "User")
-    {
-        Claim[] claims =
-        [
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, role)
-        ];
-
-        SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(JwtKey));
-        SigningCredentials credentials = new(key, SecurityAlgorithms.HmacSha256);
-        JwtSecurityToken token = new(
-            issuer: JwtIssuer,
-            audience: JwtAudience,
-            claims: claims,
-            notBefore: DateTime.UtcNow.AddMinutes(-1),
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
     private sealed class ErrorResponse
     {
         public int StatusCode { get; set; }
         public string Error { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+    }
+
+    private sealed class SessionResponse
+    {
+        public Guid Id { get; set; }
+        public bool IsOpenSession { get; set; }
+        public string ActivityName { get; set; } = string.Empty;
+        public string SpaceName { get; set; } = string.Empty;
     }
 
     private sealed class CalendarItemResponse

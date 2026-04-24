@@ -39,6 +39,15 @@ namespace Training.Application.Sessions.UseCases
             if (session == null)
                 throw new SessionNotFoundException(id);
 
+            if (request.IsOpenSession)
+            {
+                if (request.CoachId != null)
+                    throw new InvalidOpenSessionException();
+
+                if (request.ActivityId == null)
+                    throw new InvalidOpenSessionException();
+            }
+
             Space? space = await _spaceRepository.GetByIdAsync(request.SpaceId);
 
             if (space == null)
@@ -71,21 +80,34 @@ namespace Training.Application.Sessions.UseCases
             if (!available)
                 throw new SpaceUnavailableException();
 
-            await EnsureCoachMatchesActivityAsync(request.CoachId, session.ActivityId);
+            if (!request.IsOpenSession)
+            {
+                await EnsureCoachMatchesActivityAsync(request.CoachId, request.ActivityId);
+            }
 
             session.Update(
+                session.Type,
                 request.DateDebut,
                 request.DateFin,
                 request.Capacite,
                 request.Prix,
                 request.AbonnementRequis,
                 request.SpaceId,
-                request.CoachId
+                request.ActivityId,
+                request.CoachId,
+                request.IsOpenSession
             );
 
             await _sessionRepository.UpdateAsync(session);
 
-            return SessionMapper.ToResponse(session, space);
+            Session? updatedSession = await _sessionRepository.GetByIdAsync(session.Id);
+
+            if (updatedSession == null)
+            {
+                return SessionMapper.ToResponse(session, space);
+            }
+
+            return SessionMapper.ToResponse(updatedSession, updatedSession.Space ?? space);
         }
 
         private async Task EnsureCoachMatchesActivityAsync(Guid? coachId, Guid? activityId)

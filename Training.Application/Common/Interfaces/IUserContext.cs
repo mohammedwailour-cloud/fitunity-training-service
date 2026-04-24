@@ -3,6 +3,6 @@
 public interface IUserContext
 {
     Guid UserId { get; }
-    string? Role { get; }
-    bool IsAuthenticated { get; }
+    string Role { get; }
+    bool HasActiveSubscription { get; }
 }

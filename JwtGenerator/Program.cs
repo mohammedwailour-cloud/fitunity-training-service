@@ -1,7 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Training.Application.Common.Security;
 
 const string JwtIssuer = "Training.Api";
 const string JwtAudience = "Training.Client";
@@ -11,8 +12,9 @@ static string CreateJwt(Guid userId, string role = "User")
 {
     Claim[] claims =
     [
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.Role, role)
+        new Claim(JwtClaimNames.UserId, userId.ToString()),
+        new Claim(JwtClaimNames.Role, role),
+        new Claim(JwtClaimNames.Subscription, JwtClaimValues.ActiveSubscription)
     ];
 
     SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(JwtKey));
@@ -29,10 +31,8 @@ static string CreateJwt(Guid userId, string role = "User")
     return new JwtSecurityTokenHandler().WriteToken(token);
 }
 
-// USER A
 Console.WriteLine("USER A:");
 Console.WriteLine(CreateJwt(Guid.Parse("11111111-1111-1111-1111-111111111111")));
 
-// USER B
 Console.WriteLine("\nUSER B:");
 Console.WriteLine(CreateJwt(Guid.Parse("33333333-3333-3333-3333-333333333333")));
