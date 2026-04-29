@@ -1,4 +1,5 @@
-﻿using Training.Application.Coachs.Interfaces;
+using Training.Application.Coachs.Interfaces;
+using Training.Application.Common.Interfaces;
 using Training.Application.Events.Interfaces;
 using Training.Application.Exceptions;
 using Training.Application.Sessions.DTOs;
@@ -16,17 +17,20 @@ namespace Training.Application.Sessions.UseCases
         private readonly ICoachRepository _coachRepository;
         private readonly IEventRepository _eventRepository;
         private readonly ISpaceRepository _spaceRepository;
+        private readonly IUserContext _userContext;
 
         public UpdateSessionUseCase(
             ISessionRepository sessionRepository,
             ICoachRepository coachRepository,
             IEventRepository eventRepository,
-            ISpaceRepository spaceRepository)
+            ISpaceRepository spaceRepository,
+            IUserContext userContext)
         {
             _sessionRepository = sessionRepository;
             _coachRepository = coachRepository;
             _eventRepository = eventRepository;
             _spaceRepository = spaceRepository;
+            _userContext = userContext;
         }
 
         public async Task<SessionResponse?> ExecuteAsync(Guid id, UpdateSessionRequest request)
@@ -38,6 +42,9 @@ namespace Training.Application.Sessions.UseCases
 
             if (session == null)
                 throw new SessionNotFoundException(id);
+
+            if (_userContext.Role == "Coach" && session.CoachId != _userContext.UserId)
+                throw new ForbiddenException("Coach can only modify their own sessions");
 
             if (request.IsOpenSession)
             {

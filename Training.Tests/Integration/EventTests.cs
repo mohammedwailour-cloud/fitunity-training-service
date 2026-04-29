@@ -1,6 +1,8 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Training.Application.Common.DTOs;
 using Training.Application.Events.DTOs;
 using Training.Domain.Entities;
 using Training.Domain.Enums;
@@ -25,6 +27,7 @@ public class EventTests : IClassFixture<TrainingApiFactory>
         Space space = IntegrationTestHelper.CreateActiveSpace("EVENT-SUCCESS");
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage createResponse = await client.PostAsJsonAsync("/api/events", new
         {
@@ -54,12 +57,79 @@ public class EventTests : IClassFixture<TrainingApiFactory>
     }
 
     [Fact]
+    public async Task GetEvents_WithUserRole_ReturnsOk()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space space = IntegrationTestHelper.CreateActiveSpace("EVENT-GET");
+        Event ev = new(
+            "Conference",
+            "Planning annuel",
+            DateTime.UtcNow.AddDays(5),
+            DateTime.UtcNow.AddDays(5).AddHours(2),
+            40,
+            space.Id);
+
+        await _factory.SeedAsync(space, ev);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "User"));
+
+        HttpResponseMessage response = await client.GetAsync("/api/events?page=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        PagedResult<EventDto>? payload = await response.Content.ReadFromJsonAsync<PagedResult<EventDto>>(_jsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.Single(payload!.Data);
+    }
+
+    [Fact]
+    public async Task CreateEvent_WithUserRole_ReturnsForbidden()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space space = IntegrationTestHelper.CreateActiveSpace("EVENT-403");
+        await _factory.SeedAsync(space);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "User"));
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
+        {
+            titre = "Conference",
+            description = "Planning annuel",
+            dateDebut = DateTime.UtcNow.AddDays(5),
+            dateFin = DateTime.UtcNow.AddDays(5).AddHours(2),
+            capacite = 40,
+            spaceId = space.Id
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteEvent_ReturnsBadRequest()
+    {
+        await _factory.ResetDatabaseAsync();
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
+
+        HttpResponseMessage response = await client.DeleteAsync($"/api/events/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        OperationNotSupportedResponse? payload = await response.Content.ReadFromJsonAsync<OperationNotSupportedResponse>(_jsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.Equal("operation_not_supported", payload!.Error);
+    }
+
+    [Fact]
     public async Task CreateEvent_WithInvalidDates_ReturnsBadRequest()
     {
         await _factory.ResetDatabaseAsync();
         Space space = IntegrationTestHelper.CreateActiveSpace("EVENT-DATES");
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -89,6 +159,7 @@ public class EventTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, existingEvent);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -118,6 +189,7 @@ public class EventTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(inactiveSpace);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -130,5 +202,11 @@ public class EventTests : IClassFixture<TrainingApiFactory>
         });
 
         await IntegrationTestHelper.AssertErrorAsync(response, HttpStatusCode.BadRequest, "space_inactive", _jsonOptions);
+    }
+
+    private sealed class OperationNotSupportedResponse
+    {
+        public string Error { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
     }
 }

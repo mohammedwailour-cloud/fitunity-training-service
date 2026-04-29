@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.UseCases;
 using Training.Domain.Entities;
@@ -6,6 +7,7 @@ using Training.Domain.Entities;
 namespace Training.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class SessionsController : ControllerBase
     {
@@ -17,16 +19,14 @@ namespace Training.Api.Controllers
         private readonly UpdateSessionUseCase _updateSessionUseCase;
         private readonly DeleteSessionUseCase _deleteSessionUseCase;
 
-
         public SessionsController(
-      GetSessionUseCase getSessionUseCase,
-      CreateSessionUseCase createSessionUseCase,
-      GetAllSessionsUseCase getAllSessionsUseCase,
-      GetReservationsBySessionUseCase getReservationsBySessionUseCase,
-      GetSessionsPagedUseCase getSessionsPagedUseCase,
-      UpdateSessionUseCase updateSessionUseCase,
-      DeleteSessionUseCase deleteSessionUseCase
-      )
+            GetSessionUseCase getSessionUseCase,
+            CreateSessionUseCase createSessionUseCase,
+            GetAllSessionsUseCase getAllSessionsUseCase,
+            GetReservationsBySessionUseCase getReservationsBySessionUseCase,
+            GetSessionsPagedUseCase getSessionsPagedUseCase,
+            UpdateSessionUseCase updateSessionUseCase,
+            DeleteSessionUseCase deleteSessionUseCase)
         {
             _getSessionUseCase = getSessionUseCase;
             _createSessionUseCase = createSessionUseCase;
@@ -36,24 +36,15 @@ namespace Training.Api.Controllers
             _updateSessionUseCase = updateSessionUseCase;
             _deleteSessionUseCase = deleteSessionUseCase;
         }
-        
-        // [HttpGet]
-        //public async Task<IActionResult> GetAllSessions()
-        //{
-          //  var sessions = await _getAllSessionsUseCase.ExecuteAsync();
-
-            // return Ok(sessions);
-        //}
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
         {
             var result = await _createSessionUseCase.Execute(request);
-
             return CreatedAtAction(nameof(GetSession), new { id = result.Id }, result);
         }
 
-      
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSession(Guid id)
         {
@@ -64,7 +55,8 @@ namespace Training.Api.Controllers
 
             return Ok(result);
         }
-        [HttpGet("{sessionId}/reservations")] // Reservations appartient à une Session
+
+        [HttpGet("{sessionId}/reservations")]
         public async Task<IActionResult> GetReservationsBySession(Guid sessionId)
         {
             var reservations = await _getReservationsBySessionUseCase.ExecuteAsync(sessionId);
@@ -72,18 +64,15 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSessions(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetSessions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _getSessionsPagedUseCase.ExecuteAsync(page, pageSize);
             return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<SessionResponse>> UpdateSession(
-    Guid id,
-    UpdateSessionRequest request)
+        [Authorize(Roles = "Admin,Coach")]
+        public async Task<ActionResult<SessionResponse>> UpdateSession(Guid id, UpdateSessionRequest request)
         {
             var result = await _updateSessionUseCase.ExecuteAsync(id, request);
 
@@ -94,14 +83,14 @@ namespace Training.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSession(Guid id)
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeleteSession(Guid id)
         {
-            var success = await _deleteSessionUseCase.ExecuteAsync(id);
-
-            if (!success)
-                return NotFound();
-
-            return NoContent();
+            return BadRequest(new
+            {
+                error = "operation_not_supported",
+                message = "Deleting sessions is not supported. Use soft delete in future."
+            });
         }
     }
 }

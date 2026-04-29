@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Training.Application.Events.Interfaces;
 using Training.Domain.Entities;
 using Training.Infrastructure.Persistence;
@@ -27,14 +27,18 @@ namespace Training.Infrastructure.Repositories
                 .FirstOrDefaultAsync(ev => ev.Id == id);
         }
 
-        public async Task<List<Event>> GetAllAsync(int page, int pageSize)
+        public async Task<(int TotalCount, List<Event> Items)> GetAllAsync(int page, int pageSize)
         {
-            return await _context.Events
+            int totalCount = await _context.Events.CountAsync();
+
+            List<Event> items = await _context.Events
                 .Include(ev => ev.Space)
                 .OrderBy(ev => ev.DateDebut)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            return (totalCount, items);
         }
 
         public async Task UpdateAsync(Event ev)

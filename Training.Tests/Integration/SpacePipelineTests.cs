@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Training.Domain.Entities;
 using Training.Domain.Enums;
@@ -20,6 +21,7 @@ public class SpacePipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
         {
@@ -60,6 +62,7 @@ public class SpacePipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(existingSpace);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
         {
@@ -90,6 +93,7 @@ public class SpacePipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.GetAsync($"/api/spaces/{space.Id}");
 
@@ -111,6 +115,7 @@ public class SpacePipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/spaces/{space.Id}", new
         {
@@ -148,6 +153,7 @@ public class SpacePipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.DeleteAsync($"/api/spaces/{space.Id}");
 

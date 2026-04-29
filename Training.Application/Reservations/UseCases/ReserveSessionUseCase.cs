@@ -1,4 +1,4 @@
-﻿using Training.Application.Common.Interfaces;
+using Training.Application.Common.Interfaces;
 using Training.Application.Exceptions;
 using Training.Application.Reservations.DTOs;
 using Training.Application.Reservations.Interfaces;
@@ -28,16 +28,16 @@ public class ReserveSessionUseCase
 
     public async Task<ReservationResponse> ExecuteAsync(CreateReservationRequest request)
     {
-        var userId = _userContext.UserId;
+        Guid userId = _userContext.UserId;
 
-        var session = await _sessionRepository.GetByIdAsync(request.SessionId);
+        Session? session = await _sessionRepository.GetByIdAsync(request.SessionId);
         if (session == null)
             throw new SessionNotFoundException(request.SessionId);
 
         if (session.IsInPast())
             throw new InvalidSessionStateException();
 
-        var reservations = (await _reservationRepository
+        List<Reservation> reservations = (await _reservationRepository
             .GetBySessionIdAsync(request.SessionId))
             .ToList();
 
@@ -47,14 +47,17 @@ public class ReserveSessionUseCase
         if (reservations.Any(r => r.UserId == userId))
             throw new DuplicateReservationException();
 
-        var reservation = new Reservation(
+        if (session.AbonnementRequis && !_userContext.HasActiveSubscription)
+            throw new SubscriptionRequiredException();
+
+        Reservation reservation = new Reservation(
             userId,
             request.SessionId
         );
 
         await _reservationRepository.AddAsync(reservation);
 
-        var domainEvent = new ReservationCreatedEvent(
+        ReservationCreatedEvent domainEvent = new ReservationCreatedEvent(
             reservation.Id,
             reservation.SessionId,
             reservation.UserId

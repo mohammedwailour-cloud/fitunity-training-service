@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Training.Application.Coachs.UseCases;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Training.Application.Coachs.DTOs;
-
-
-
+using Training.Application.Coachs.UseCases;
 
 namespace Training.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 public class CoachesController : ControllerBase
 {
@@ -16,6 +15,7 @@ public class CoachesController : ControllerBase
     private readonly GetCoachesUseCase _getCoaches;
     private readonly DeleteCoachUseCase _deleteCoach;
     private readonly UpdateCoachUseCase _updateCoach;
+
     public CoachesController(
         CreateCoachUseCase createCoach,
         GetCoachByIdUseCase getCoachById,
@@ -30,7 +30,6 @@ public class CoachesController : ControllerBase
         _updateCoach = updateCoach;
     }
 
-    // 🔹 POST api/coaches
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCoachDto dto)
     {
@@ -38,7 +37,6 @@ public class CoachesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
-    // 🔹 GET api/coaches/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -46,7 +44,6 @@ public class CoachesController : ControllerBase
         return Ok(coach);
     }
 
-    // 🔹 GET api/coaches?page=1&pageSize=10
     [HttpGet]
     public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
     {
@@ -54,7 +51,6 @@ public class CoachesController : ControllerBase
         return Ok(coaches);
     }
 
-    // 🔹 DELETE api/coaches/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -62,7 +58,6 @@ public class CoachesController : ControllerBase
         return NoContent();
     }
 
-    //Update 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCoachDto dto)
     {

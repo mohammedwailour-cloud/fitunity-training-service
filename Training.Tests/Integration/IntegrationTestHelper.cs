@@ -46,13 +46,16 @@ internal static class IntegrationTestHelper
             true);
     }
 
-    internal static string CreateJwt(Guid userId, string role = "User")
+    internal static string CreateJwt(
+        Guid userId,
+        string role = "User",
+        string subscriptionStatus = JwtClaimValues.ActiveSubscription)
     {
         Claim[] claims =
         [
             new Claim(JwtClaimNames.UserId, userId.ToString()),
             new Claim(JwtClaimNames.Role, role),
-            new Claim(JwtClaimNames.Subscription, JwtClaimValues.ActiveSubscription)
+            new Claim(JwtClaimNames.Subscription, subscriptionStatus)
         ];
 
         SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(JwtKey));

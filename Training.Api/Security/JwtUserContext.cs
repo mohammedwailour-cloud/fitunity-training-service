@@ -51,6 +51,7 @@ public class JwtUserContext : IUserContext
                     "ADMIN" => "Admin",
                     "COACH" => "Coach",
                     "CLIENT" => "User",
+                    "USER" => "User",
                     _ => throw new UserContextUnavailableException()
                 };
             }

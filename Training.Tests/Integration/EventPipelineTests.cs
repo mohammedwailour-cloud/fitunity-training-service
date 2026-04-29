@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Training.Domain.Entities;
 using Training.Domain.Enums;
@@ -22,6 +23,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateSpace("CONF-VALID", 100, true);
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -43,6 +45,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateSpace("CONF-DATES", 100, true);
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -62,6 +65,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -83,6 +87,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateSpace("CONF-INACTIVE", 100, false);
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -104,6 +109,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateSpace("CONF-CAP", 20, true);
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -133,6 +139,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, existingEvent);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -163,6 +170,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, session);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/events", new
         {
@@ -192,6 +200,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, existingEvent);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Coach"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -201,6 +210,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
             capacite = 10,
             prix = 20m,
             abonnementRequis = false,
+            isOpenSession = false,
             spaceId = space.Id,
             activityId = (Guid?)null,
             coachId = (Guid?)null,
@@ -225,6 +235,7 @@ public class EventPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, existingEvent);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/events/{existingEvent.Id}", new
         {

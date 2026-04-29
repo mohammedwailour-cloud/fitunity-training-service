@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Training.Application.Common.DTOs;
 using Training.Application.Events.DTOs;
 using Training.Application.Events.UseCases;
 
@@ -7,6 +9,7 @@ namespace Training.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EventsController : ControllerBase
     {
         private readonly CreateEventUseCase _createEventUseCase;
@@ -30,27 +33,29 @@ namespace Training.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
         {
-            var id = await _createEventUseCase.Execute(dto);
+            Guid id = await _createEventUseCase.Execute(dto);
             return CreatedAtAction(nameof(GetById), new { id }, id);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var ev = await _getEventByIdUseCase.Execute(id);
+            EventDto ev = await _getEventByIdUseCase.Execute(id);
             return Ok(ev);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var events = await _getEventsUseCase.Execute(page, pageSize);
-            return Ok(events);
+            PagedResult<EventDto> result = await _getEventsUseCase.Execute(page, pageSize);
+            return Ok(result);
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEventDto dto)
         {
             await _updateEventUseCase.Execute(id, dto);
@@ -58,10 +63,14 @@ namespace Training.Api.Controllers
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete(Guid id)
         {
-            await _deleteEventUseCase.Execute(id);
-            return NoContent();
+            return BadRequest(new
+            {
+                error = "operation_not_supported",
+                message = "Deleting events is not supported. Use soft delete in future."
+            });
         }
     }
 }

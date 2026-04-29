@@ -25,6 +25,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateActiveSpace("SPACE-DATES");
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -52,6 +53,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         ActivitySportive activity = new("Musculation", "Libre");
         await _factory.SeedAsync(space, activity);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -85,6 +87,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         Coach coach = new("Coach A", "coach@test.local", activity.Id);
         await _factory.SeedAsync(space, activity, coach);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -111,6 +114,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         Space space = CreateActiveSpace("SPACE-OPEN-NO-ACTIVITY");
         await _factory.SeedAsync(space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Coach"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -151,6 +155,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(space, activity, session, reservation1, reservation2);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{session.Id}", new
         {
@@ -297,6 +302,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(activity1, activity2, coach, space);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Coach"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/sessions", new
         {
@@ -324,6 +330,7 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
         ActivitySportive activity = new("Yoga", "Flow");
         await _factory.SeedAsync(space, activity);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Coach"));
 
         HttpResponseMessage response = await client.PutAsJsonAsync($"/api/sessions/{Guid.NewGuid()}", new
         {

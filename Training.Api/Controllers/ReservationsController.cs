@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Training.Application.Common.DTOs;
 using Training.Application.Reservations.DTOs;
+using Training.Domain.Entities;
 
 namespace Training.Api.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin,User,Coach")]
+    [Authorize]
     [Route("api/[controller]")]
     public class ReservationsController : ControllerBase
     {
@@ -30,14 +32,15 @@ namespace Training.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Reserve(CreateReservationRequest request)
         {
-            var result = await _reserveSessionUseCase.ExecuteAsync(request);
-
+            ReservationResponse result = await _reserveSessionUseCase.ExecuteAsync(request);
             return Ok(result);
         }
 
         [HttpPatch("{id}/confirm")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ConfirmReservation(Guid id)
         {
             await _confirmReservationUseCase.ExecuteAsync(id);
@@ -45,6 +48,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpPatch("{id}/cancel")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> CancelReservation(Guid id)
         {
             await _cancelReservationUseCase.ExecuteAsync(id);
@@ -52,6 +56,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet("me")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetMyReservations()
         {
             var result = await _getReservationsByUserUseCase.ExecuteForCurrentUserAsync();
@@ -59,12 +64,12 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReservations(
-         [FromQuery] int page = 1,
-         [FromQuery] int pageSize = 10)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetReservations([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _getReservationsPagedUseCase.ExecuteAsync(page, pageSize);
-            return Ok(result);
+            PagedResult<Reservation> pagedResult =
+                await _getReservationsPagedUseCase.ExecuteAsync(page, pageSize);
+            return Ok(pagedResult);
         }
     }
 }

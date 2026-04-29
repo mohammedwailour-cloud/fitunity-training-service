@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Training.Application.Common.DTOs;
@@ -24,6 +25,7 @@ public class SpaceTests : IClassFixture<TrainingApiFactory>
     {
         await _factory.ResetDatabaseAsync();
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
         {
@@ -48,10 +50,90 @@ public class SpaceTests : IClassFixture<TrainingApiFactory>
     }
 
     [Fact]
+    public async Task CreateSpace_WithoutAuthentication_ReturnsUnauthorized()
+    {
+        await _factory.ResetDatabaseAsync();
+        HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
+        {
+            name = "Salle Danse 1",
+            code = "DANCE-401",
+            description = "Studio principal",
+            type = SpaceType.MultiPurposeRoom,
+            capacity = 25,
+            supportsSeatManagement = false,
+            isActive = true
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateSpace_WithUserRole_ReturnsForbidden()
+    {
+        await _factory.ResetDatabaseAsync();
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "User"));
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
+        {
+            name = "Salle Danse 1",
+            code = "DANCE-403",
+            description = "Studio principal",
+            type = SpaceType.MultiPurposeRoom,
+            capacity = 25,
+            supportsSeatManagement = false,
+            isActive = true
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetSpaces_WithCoachRole_ReturnsOk()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space activeSpace = IntegrationTestHelper.CreateActiveSpace("COACH-SPACE");
+        await _factory.SeedAsync(activeSpace);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Coach"));
+
+        HttpResponseMessage response = await client.GetAsync("/api/spaces?page=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        PagedResult<SpaceResponse>? payload = await response.Content.ReadFromJsonAsync<PagedResult<SpaceResponse>>(_jsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.Single(payload!.Data);
+    }
+
+    [Fact]
+    public async Task GetSpaces_WithUserRole_ReturnsOk()
+    {
+        await _factory.ResetDatabaseAsync();
+        Space activeSpace = IntegrationTestHelper.CreateActiveSpace("USER-SPACE");
+        await _factory.SeedAsync(activeSpace);
+        HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "User"));
+
+        HttpResponseMessage response = await client.GetAsync("/api/spaces?page=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        PagedResult<SpaceResponse>? payload = await response.Content.ReadFromJsonAsync<PagedResult<SpaceResponse>>(_jsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.Single(payload!.Data);
+    }
+
+    [Fact]
     public async Task CreateSpace_WithInvalidName_ReturnsBadRequest()
     {
         await _factory.ResetDatabaseAsync();
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
         {
@@ -74,6 +156,7 @@ public class SpaceTests : IClassFixture<TrainingApiFactory>
         Space existingSpace = IntegrationTestHelper.CreateActiveSpace("DUPLICATE-1");
         await _factory.SeedAsync(existingSpace);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/spaces", new
         {
@@ -105,6 +188,7 @@ public class SpaceTests : IClassFixture<TrainingApiFactory>
 
         await _factory.SeedAsync(activeSpace, inactiveSpace);
         HttpClient client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IntegrationTestHelper.CreateJwt(Guid.NewGuid(), "Admin"));
 
         HttpResponseMessage response = await client.GetAsync("/api/spaces?page=1&pageSize=10");
 

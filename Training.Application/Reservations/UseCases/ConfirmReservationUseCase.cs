@@ -1,5 +1,6 @@
-﻿using Training.Application.Common.Interfaces;
+using Training.Application.Common.Interfaces;
 using Training.Application.Reservations.Interfaces;
+using Training.Domain.Entities;
 using Training.Domain.Events;
 using Training.Domain.Exceptions;
 
@@ -8,7 +9,9 @@ public class ConfirmReservationUseCase
     private readonly IReservationRepository _reservationRepository;
     private readonly IEventPublisher _eventPublisher;
 
-    public ConfirmReservationUseCase(IReservationRepository reservationRepository, IEventPublisher eventPublisher)
+    public ConfirmReservationUseCase(
+        IReservationRepository reservationRepository,
+        IEventPublisher eventPublisher)
     {
         _reservationRepository = reservationRepository;
         _eventPublisher = eventPublisher;
@@ -16,7 +19,7 @@ public class ConfirmReservationUseCase
 
     public async Task ExecuteAsync(Guid reservationId)
     {
-        var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+        Reservation? reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
         if (reservation == null)
             throw new ReservationNotFoundException(reservationId);
@@ -24,7 +27,7 @@ public class ConfirmReservationUseCase
         reservation.Confirm();
 
         await _reservationRepository.UpdateAsync(reservation);
-        // Publish Event
+
         var domainEvent = new ReservationConfirmedEvent(
             reservation.Id,
             reservation.SessionId,
@@ -32,6 +35,5 @@ public class ConfirmReservationUseCase
         );
 
         await _eventPublisher.PublishAsync(domainEvent);
-
     }
 }

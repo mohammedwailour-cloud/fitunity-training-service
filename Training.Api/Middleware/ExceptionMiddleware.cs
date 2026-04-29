@@ -1,4 +1,4 @@
-﻿using Training.Application.Exceptions;
+using Training.Application.Exceptions;
 using Training.Domain.Exceptions;
 
 public class ExceptionMiddleware
@@ -32,9 +32,12 @@ public class ExceptionMiddleware
             SessionNotFoundException => StatusCodes.Status404NotFound,
             CoachNotFoundException => StatusCodes.Status404NotFound,
             SpaceNotFoundException => StatusCodes.Status404NotFound,
+            NotSupportedException => StatusCodes.Status400BadRequest,
             UserContextUnavailableException => StatusCodes.Status401Unauthorized,
+            SubscriptionRequiredException => StatusCodes.Status403Forbidden,
+            ForbiddenException => StatusCodes.Status403Forbidden,
+            InvalidReservationUserException => StatusCodes.Status403Forbidden,
             InvalidReservationStateException => StatusCodes.Status400BadRequest,
-            InvalidReservationUserException => StatusCodes.Status400BadRequest,
             InvalidReservationSessionException => StatusCodes.Status400BadRequest,
             InvalidSessionDatesException => StatusCodes.Status400BadRequest,
             InvalidSessionCapacityException => StatusCodes.Status400BadRequest,
@@ -83,7 +86,10 @@ public class ExceptionMiddleware
             SessionNotFoundException => "session_not_found",
             CoachNotFoundException => "coach_not_found",
             SpaceNotFoundException => "space_not_found",
+            NotSupportedException => "operation_not_supported",
             UserContextUnavailableException => "user_context_unavailable",
+            SubscriptionRequiredException => "subscription_required",
+            ForbiddenException => "forbidden",
             InvalidReservationStateException => "invalid_reservation_state",
             InvalidReservationUserException => "invalid_reservation_user",
             InvalidReservationSessionException => "invalid_reservation_session",
@@ -125,7 +131,10 @@ public class ExceptionMiddleware
             SessionNotFoundException => "Session introuvable",
             CoachNotFoundException => "Coach introuvable",
             SpaceNotFoundException => "Space introuvable",
+            NotSupportedException => exception.Message,
             UserContextUnavailableException => "Utilisateur connecte introuvable",
+            SubscriptionRequiredException => "Abonnement actif requis",
+            ForbiddenException => "Acces interdit",
             InvalidReservationStateException => "Etat de reservation invalide",
             InvalidReservationUserException => "Utilisateur de reservation invalide",
             InvalidReservationSessionException => "Session de reservation invalide",

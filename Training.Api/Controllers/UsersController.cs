@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/users")]
 public class UsersController : ControllerBase
 {

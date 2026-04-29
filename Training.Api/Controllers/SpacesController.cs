@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Training.Application.Common.DTOs;
 using Training.Application.Spaces.DTOs;
 using Training.Application.Spaces.UseCases;
@@ -6,6 +7,7 @@ using Training.Application.Spaces.UseCases;
 namespace Training.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class SpacesController : ControllerBase
 {
@@ -30,6 +32,7 @@ public class SpacesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<SpaceResponse>> Create([FromBody] CreateSpaceRequest request)
     {
         SpaceResponse result = await _createSpaceUseCase.ExecuteAsync(request);
@@ -37,6 +40,7 @@ public class SpacesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<SpaceResponse>> Update(Guid id, [FromBody] UpdateSpaceRequest request)
     {
         SpaceResponse result = await _updateSpaceUseCase.ExecuteAsync(id, request);
@@ -44,6 +48,7 @@ public class SpacesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin,Coach,User")]
     public async Task<ActionResult<SpaceResponse>> GetById(Guid id)
     {
         SpaceResponse result = await _getSpaceByIdUseCase.ExecuteAsync(id);
@@ -51,6 +56,7 @@ public class SpacesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Coach,User")]
     public async Task<ActionResult<PagedResult<SpaceResponse>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         PagedResult<SpaceResponse> result = await _getSpacesUseCase.ExecuteAsync(page, pageSize);
@@ -58,6 +64,7 @@ public class SpacesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _deleteSpaceUseCase.ExecuteAsync(id);
