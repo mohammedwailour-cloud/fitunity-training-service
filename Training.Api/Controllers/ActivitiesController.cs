@@ -41,6 +41,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ActivityResponse>> GetActivityById(Guid id)
         {
             ActivityResponse? result = await _getActivityByIdUseCase.ExecuteAsync(id);
@@ -52,6 +53,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<ActivityResponse>>> GetActivities([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             PagedResult<ActivityResponse> result = await _getActivitiesUseCase.ExecuteAsync(page, pageSize);

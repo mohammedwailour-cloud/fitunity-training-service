@@ -1,5 +1,7 @@
-﻿using Training.Application.Common.DTOs;
+using Training.Application.Common.DTOs;
+using Training.Application.Reservations.DTOs;
 using Training.Application.Reservations.Interfaces;
+using Training.Application.Reservations.Mappers;
 using Training.Domain.Entities;
 
 public class GetReservationsPagedUseCase
@@ -11,18 +13,30 @@ public class GetReservationsPagedUseCase
         _reservationRepository = reservationRepository;
     }
 
-    public async Task<PagedResult<Reservation>> ExecuteAsync(int page, int pageSize)
+    public async Task<PagedResult<ReservationResponse>> ExecuteAsync(int page, int pageSize)
     {
-        var (reservations, totalCount) =
+        if (page <= 0)
+        {
+            page = 1;
+        }
+
+        if (pageSize <= 0)
+        {
+            pageSize = 10;
+        }
+
+        (IEnumerable<Reservation> reservations, int totalCount) =
             await _reservationRepository.GetPagedAsync(page, pageSize);
 
-        return new PagedResult<Reservation>
+        List<ReservationResponse> items = ReservationMapper.ToResponseList(reservations);
+
+        return new PagedResult<ReservationResponse>
         {
             Page = page,
             PageSize = pageSize,
             TotalItems = totalCount,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-            Data = reservations
+            Data = items
         };
     }
 }

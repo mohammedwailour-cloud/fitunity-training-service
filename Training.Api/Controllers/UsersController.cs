@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Training.Application.Reservations.DTOs;
 
 [ApiController]
 [Authorize(Roles = "Admin")]
@@ -16,7 +17,7 @@ public class UsersController : ControllerBase
     [HttpGet("{userId}/reservations")]
     public async Task<IActionResult> GetReservationsByUser(Guid userId)
     {
-        var reservations = await _getReservationsByUserUseCase.ExecuteAsync(userId);
+        List<ReservationResponse> reservations = await _getReservationsByUserUseCase.ExecuteAsync(userId);
         return Ok(reservations);
     }
 }

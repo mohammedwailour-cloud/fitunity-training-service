@@ -1,6 +1,7 @@
-﻿using Training.Application.Events.DTOs;
+using Training.Application.Events.DTOs;
 using Training.Application.Events.Interfaces;
 using Training.Application.Events.Mappers;
+using Training.Application.Exceptions;
 
 namespace Training.Application.Events.UseCases;
 
@@ -18,7 +19,7 @@ public class GetEventByIdUseCase
         Training.Domain.Entities.Event? ev = await _repository.GetByIdAsync(id);
 
         if (ev == null)
-            throw new Exception("Event not found");
+            throw new EventNotFoundException(id);
 
         return EventMapper.ToDto(ev, ev.Space);
     }

@@ -380,12 +380,13 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
         Assert.NotNull(payload);
         Assert.Single(payload!);
-        Assert.Equal(session.Id, payload[0].SessionId);
+        Assert.Equal(session.Id, payload[0].Id);
+        Assert.Equal("session", payload[0].Type);
+        Assert.Equal("Pilates", payload[0].Title);
         Assert.Equal("Pilates", payload[0].ActivityName);
         Assert.Equal("Pilates Room", payload[0].SpaceName);
         Assert.Equal(session.DateDebut, payload[0].DateDebut);
         Assert.Equal(session.DateFin, payload[0].DateFin);
-        Assert.Equal(SessionType.CoachingGroupe, payload[0].Type);
     }
 
     private static Space CreateActiveSpace(string code, string? name = null)
@@ -429,11 +430,12 @@ public class SessionPipelineTests : IClassFixture<TrainingApiFactory>
 
     private sealed class CalendarItemResponse
     {
-        public Guid SessionId { get; set; }
-        public string ActivityName { get; set; } = string.Empty;
+        public Guid Id { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string? ActivityName { get; set; }
         public string SpaceName { get; set; } = string.Empty;
         public DateTime DateDebut { get; set; }
         public DateTime DateFin { get; set; }
-        public SessionType Type { get; set; }
     }
 }

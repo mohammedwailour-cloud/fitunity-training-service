@@ -4,7 +4,7 @@ namespace Training.Application.Coachs.Interfaces
 {
     public interface ICoachRepository
     {
-        Task<Coach> GetByIdAsync(Guid id);
+        Task<Coach?> GetByIdAsync(Guid id);
         Task<List<Coach>> GetAllAsync(int page, int pageSize);
         Task AddAsync(Coach coach);
         Task UpdateAsync(Coach coach);

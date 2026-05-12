@@ -232,7 +232,7 @@ public class SessionTests : IClassFixture<TrainingApiFactory>
     }
 
     [Fact]
-    public async Task DeleteSession_ReturnsBadRequest()
+    public async Task DeleteSession_ReturnsNotImplemented()
     {
         await _factory.ResetDatabaseAsync();
         HttpClient client = _factory.CreateClient();
@@ -240,12 +240,12 @@ public class SessionTests : IClassFixture<TrainingApiFactory>
 
         HttpResponseMessage response = await client.DeleteAsync($"/api/sessions/{Guid.NewGuid()}");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotImplemented, response.StatusCode);
 
         OperationNotSupportedResponse? payload = await response.Content.ReadFromJsonAsync<OperationNotSupportedResponse>(_jsonOptions);
 
         Assert.NotNull(payload);
-        Assert.Equal("operation_not_supported", payload!.Error);
+        Assert.Equal("not_implemented", payload!.Error);
     }
 
     [Fact]
@@ -288,6 +288,7 @@ public class SessionTests : IClassFixture<TrainingApiFactory>
 
     private sealed class OperationNotSupportedResponse
     {
+        public int StatusCode { get; set; }
         public string Error { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
     }

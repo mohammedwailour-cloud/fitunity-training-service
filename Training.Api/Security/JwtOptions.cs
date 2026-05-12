@@ -10,5 +10,5 @@ public class JwtOptions
     public string DefaultUserId { get; set; } = "11111111-1111-1111-1111-111111111111";
     public string DefaultRole { get; set; } = "User";
     public string DefaultSubscriptionStatus { get; set; } = "ACTIVE";
-    public bool EnableDevelopmentFallback { get; set; } = true;
+    public bool EnableDevelopmentFallback { get; set; } = false;
 }

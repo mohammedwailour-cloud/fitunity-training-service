@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Training.Application.Reservations.DTOs;
 using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.UseCases;
-using Training.Domain.Entities;
 
 namespace Training.Api.Controllers
 {
@@ -41,14 +42,15 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
         {
-            var result = await _createSessionUseCase.Execute(request);
+            SessionResponse result = await _createSessionUseCase.Execute(request);
             return CreatedAtAction(nameof(GetSession), new { id = result.Id }, result);
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetSession(Guid id)
         {
-            var result = await _getSessionUseCase.Execute(id);
+            SessionResponse? result = await _getSessionUseCase.Execute(id);
 
             if (result == null)
                 return NotFound();
@@ -59,11 +61,12 @@ namespace Training.Api.Controllers
         [HttpGet("{sessionId}/reservations")]
         public async Task<IActionResult> GetReservationsBySession(Guid sessionId)
         {
-            var reservations = await _getReservationsBySessionUseCase.ExecuteAsync(sessionId);
+            List<ReservationResponse> reservations = await _getReservationsBySessionUseCase.ExecuteAsync(sessionId);
             return Ok(reservations);
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetSessions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _getSessionsPagedUseCase.ExecuteAsync(page, pageSize);
@@ -74,7 +77,7 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "Admin,Coach")]
         public async Task<ActionResult<SessionResponse>> UpdateSession(Guid id, UpdateSessionRequest request)
         {
-            var result = await _updateSessionUseCase.ExecuteAsync(id, request);
+            SessionResponse? result = await _updateSessionUseCase.ExecuteAsync(id, request);
 
             if (result == null)
                 return NotFound();
@@ -86,10 +89,11 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult DeleteSession(Guid id)
         {
-            return BadRequest(new
+            return StatusCode(StatusCodes.Status501NotImplemented, new
             {
-                error = "operation_not_supported",
-                message = "Deleting sessions is not supported. Use soft delete in future."
+                statusCode = StatusCodes.Status501NotImplemented,
+                error = "not_implemented",
+                message = "Deleting sessions is not implemented."
             });
         }
     }

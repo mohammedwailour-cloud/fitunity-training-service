@@ -41,6 +41,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(Guid id)
         {
             EventDto ev = await _getEventByIdUseCase.Execute(id);
@@ -48,6 +49,7 @@ namespace Training.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             PagedResult<EventDto> result = await _getEventsUseCase.Execute(page, pageSize);
@@ -66,10 +68,11 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(Guid id)
         {
-            return BadRequest(new
+            return StatusCode(StatusCodes.Status501NotImplemented, new
             {
-                error = "operation_not_supported",
-                message = "Deleting events is not supported. Use soft delete in future."
+                statusCode = StatusCodes.Status501NotImplemented,
+                error = "not_implemented",
+                message = "Deleting events is not implemented."
             });
         }
     }

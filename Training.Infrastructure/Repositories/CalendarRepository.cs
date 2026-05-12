@@ -7,7 +7,6 @@ namespace Training.Infrastructure.Repositories;
 
 public class CalendarRepository : ICalendarRepository
 {
-    private const string UnknownActivityName = "Unknown Activity";
     private const string UnknownSpaceName = "Unknown Space";
 
     private readonly TrainingDbContext _context;
@@ -19,7 +18,7 @@ public class CalendarRepository : ICalendarRepository
 
     public async Task<IEnumerable<CalendarItemDto>> GetUserCalendarAsync(Guid userId)
     {
-        List<CalendarItemDto> calendarItems = await (
+        List<CalendarItemDto> sessionItems = await (
             from reservation in _context.Reservations.AsNoTracking()
             join session in _context.Sessions.AsNoTracking()
                 on reservation.SessionId equals session.Id
@@ -30,17 +29,37 @@ public class CalendarRepository : ICalendarRepository
                 on session.SpaceId equals space.Id into spaceGroup
             from space in spaceGroup.DefaultIfEmpty()
             where reservation.UserId == userId
-            orderby session.DateDebut
             select new CalendarItemDto
             {
-                SessionId = session.Id,
-                ActivityName = activity != null ? activity.Nom : UnknownActivityName,
-                SpaceName = space != null ? space.Name : UnknownSpaceName,
+                Id = session.Id,
+                Type = "session",
+                Title = activity != null ? activity.Nom : "Session",
                 DateDebut = session.DateDebut,
                 DateFin = session.DateFin,
-                Type = session.Type
+                SpaceName = space != null ? space.Name : UnknownSpaceName,
+                ActivityName = activity != null ? activity.Nom : null
             })
             .ToListAsync();
+
+        List<CalendarItemDto> eventItems = await _context.Events
+            .AsNoTracking()
+            .Include(ev => ev.Space)
+            .Select(ev => new CalendarItemDto
+            {
+                Id = ev.Id,
+                Type = "event",
+                Title = ev.Titre,
+                DateDebut = ev.DateDebut,
+                DateFin = ev.DateFin,
+                SpaceName = ev.Space != null ? ev.Space.Name : UnknownSpaceName,
+                ActivityName = null
+            })
+            .ToListAsync();
+
+        List<CalendarItemDto> calendarItems = sessionItems
+            .Concat(eventItems)
+            .OrderBy(item => item.DateDebut)
+            .ToList();
 
         return calendarItems;
     }

@@ -1,6 +1,8 @@
-﻿using Training.Application.Coachs.DTOs;
+using Training.Application.Coachs.DTOs;
 using Training.Application.Coachs.Interfaces;
 using Training.Application.Coachs.Mappers;
+using Training.Application.Exceptions;
+using Training.Domain.Entities;
 
 namespace Training.Application.Coachs.UseCases
 {
@@ -15,10 +17,10 @@ namespace Training.Application.Coachs.UseCases
 
         public async Task<CoachDto> Execute(Guid id)
         {
-            var coach = await _repository.GetByIdAsync(id);
+            Coach? coach = await _repository.GetByIdAsync(id);
 
             if (coach == null)
-                throw new Exception("Coach not found");
+                throw new CoachNotFoundException(id);
 
             return CoachMapper.ToDto(coach);
         }

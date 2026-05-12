@@ -1,4 +1,6 @@
-﻿using Training.Application.Reservations.Interfaces;
+using Training.Application.Reservations.DTOs;
+using Training.Application.Reservations.Interfaces;
+using Training.Application.Reservations.Mappers;
 using Training.Domain.Entities;
 
 public class GetReservationsBySessionUseCase
@@ -10,8 +12,9 @@ public class GetReservationsBySessionUseCase
         _reservationRepository = reservationRepository;
     }
 
-    public async Task<IEnumerable<Reservation>> ExecuteAsync(Guid sessionId)
+    public async Task<List<ReservationResponse>> ExecuteAsync(Guid sessionId)
     {
-        return await _reservationRepository.GetBySessionIdAsync(sessionId);
+        IEnumerable<Reservation> reservations = await _reservationRepository.GetBySessionIdAsync(sessionId);
+        return ReservationMapper.ToResponseList(reservations);
     }
 }

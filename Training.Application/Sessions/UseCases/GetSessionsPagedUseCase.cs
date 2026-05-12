@@ -1,4 +1,4 @@
-﻿using Training.Application.Common.DTOs;
+using Training.Application.Common.DTOs;
 using Training.Application.Sessions.DTOs;
 using Training.Application.Sessions.Interfaces;
 using Training.Application.Sessions.Mappers;
@@ -17,6 +17,16 @@ namespace Training.Application.Sessions.UseCases
 
         public async Task<PagedResult<SessionResponse>> ExecuteAsync(int page, int pageSize)
         {
+            if (page <= 0)
+            {
+                page = 1;
+            }
+
+            if (pageSize <= 0)
+            {
+                pageSize = 10;
+            }
+
             (IEnumerable<Session> sessions, int totalCount) = await _sessionRepository.GetPagedAsync(page, pageSize);
             List<SessionResponse> responses = sessions
                 .Select(session => SessionMapper.ToResponse(session, session.Space))

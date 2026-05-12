@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Training.Application.Common.DTOs;
 using Training.Application.Reservations.DTOs;
-using Training.Domain.Entities;
 
 namespace Training.Api.Controllers
 {
@@ -59,7 +58,7 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetMyReservations()
         {
-            var result = await _getReservationsByUserUseCase.ExecuteForCurrentUserAsync();
+            List<ReservationResponse> result = await _getReservationsByUserUseCase.ExecuteForCurrentUserAsync();
             return Ok(result);
         }
 
@@ -67,7 +66,7 @@ namespace Training.Api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetReservations([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            PagedResult<Reservation> pagedResult =
+            PagedResult<ReservationResponse> pagedResult =
                 await _getReservationsPagedUseCase.ExecuteAsync(page, pageSize);
             return Ok(pagedResult);
         }

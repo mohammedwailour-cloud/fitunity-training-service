@@ -1,7 +1,8 @@
-﻿using Training.Application.Activities.DTOs;
+using Training.Application.Activities.DTOs;
 using Training.Application.Activities.Interfaces;
 using Training.Application.Activities.Mappers;
 using Training.Application.Common.DTOs;
+using Training.Domain.Entities;
 
 namespace Training.Application.Activities.UseCases
 {
@@ -16,9 +17,18 @@ namespace Training.Application.Activities.UseCases
 
         public async Task<PagedResult<ActivityResponse>> ExecuteAsync(int page, int pageSize)
         {
-            var (items, totalCount) = await _activityRepository.GetPagedAsync(page, pageSize);
+            if (page <= 0)
+            {
+                page = 1;
+            }
 
-            var mappedItems = items.Select(ActivityMapper.ToResponse);
+            if (pageSize <= 0)
+            {
+                pageSize = 10;
+            }
+
+            (IEnumerable<ActivitySportive> items, int totalCount) = await _activityRepository.GetPagedAsync(page, pageSize);
+            IEnumerable<ActivityResponse> mappedItems = items.Select(ActivityMapper.ToResponse);
 
             return new PagedResult<ActivityResponse>
             {

@@ -156,6 +156,9 @@ namespace Training.Infrastructure.Migrations
                     b.Property<Guid?>("EventId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsOpenSession")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("Prix")
                         .HasColumnType("decimal(18,2)");
 

@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Training.Application.Coachs.Interfaces;
+using Training.Application.Exceptions;
 using Training.Domain.Entities;
 using Training.Infrastructure.Persistence;
 
@@ -20,7 +21,7 @@ public class CoachRepository : ICoachRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Coach> GetByIdAsync(Guid id)
+    public async Task<Coach?> GetByIdAsync(Guid id)
     {
         return await _context.Coaches
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -42,10 +43,10 @@ public class CoachRepository : ICoachRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        var coach = await _context.Coaches.FindAsync(id);
+        Coach? coach = await _context.Coaches.FindAsync(id);
 
         if (coach == null)
-            throw new Exception("Coach not found");
+            throw new CoachNotFoundException(id);
 
         _context.Coaches.Remove(coach);
         await _context.SaveChangesAsync();

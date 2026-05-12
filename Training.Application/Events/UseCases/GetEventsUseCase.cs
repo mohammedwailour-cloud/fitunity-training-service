@@ -17,6 +17,16 @@ public class GetEventsUseCase
 
     public async Task<PagedResult<EventDto>> Execute(int page, int pageSize)
     {
+        if (page <= 0)
+        {
+            page = 1;
+        }
+
+        if (pageSize <= 0)
+        {
+            pageSize = 10;
+        }
+
         (int totalCount, List<Event> events) = await _repository.GetAllAsync(page, pageSize);
         List<EventDto> items = EventMapper.ToDtoList(events);
 

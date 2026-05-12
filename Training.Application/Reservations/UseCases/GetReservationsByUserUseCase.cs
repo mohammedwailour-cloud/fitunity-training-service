@@ -1,5 +1,7 @@
-﻿using Training.Application.Common.Interfaces;
+using Training.Application.Common.Interfaces;
+using Training.Application.Reservations.DTOs;
 using Training.Application.Reservations.Interfaces;
+using Training.Application.Reservations.Mappers;
 using Training.Domain.Entities;
 
 public class GetReservationsByUserUseCase
@@ -13,13 +15,15 @@ public class GetReservationsByUserUseCase
         _userContext = userContext;
     }
 
-    public async Task<IEnumerable<Reservation>> ExecuteAsync(Guid userId)
+    public async Task<List<ReservationResponse>> ExecuteAsync(Guid userId)
     {
-        return await _reservationRepository.GetByUserIdAsync(userId);
+        IEnumerable<Reservation> reservations = await _reservationRepository.GetByUserIdAsync(userId);
+        return ReservationMapper.ToResponseList(reservations);
     }
 
-    public async Task<IEnumerable<Reservation>> ExecuteForCurrentUserAsync()
+    public async Task<List<ReservationResponse>> ExecuteForCurrentUserAsync()
     {
-        return await _reservationRepository.GetByUserIdAsync(_userContext.UserId);
+        IEnumerable<Reservation> reservations = await _reservationRepository.GetByUserIdAsync(_userContext.UserId);
+        return ReservationMapper.ToResponseList(reservations);
     }
 }
